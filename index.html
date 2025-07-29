@@ -15,23 +15,29 @@
       height: 100vh;
       margin: 0;
     }
+
     .button-container {
       display: flex;
       gap: 20px;
     }
+
     .service-button {
       background-color: #1f1f1f;
       color: #ffffff;
       border: 2px solid #444;
       padding: 15px 30px;
       font-size: 18px;
+      font-weight: 400;
       border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s, border-color 0.3s;
+      transition: background-color 0.3s, border-color 0.3s, transform 0.2s, font-weight 0.2s;
     }
+
     .service-button:hover {
       background-color: #333;
       border-color: #666;
+      transform: scale(1.05);
+      font-weight: 700;
     }
   </style>
 </head>
