@@ -215,10 +215,24 @@
       color: #aaccff;
       text-shadow: 0 0 4px rgba(0,0,0,0.6);
       user-select: none;
+      text-align: center;
+    }
+    #citystate {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #bbddff;
+      margin-bottom: 3px;
+      text-shadow: 0 0 6px rgba(51,153,255,0.7);
+      user-select: none;
+      text-align: center;
     }
     body.light #location {
       color: #6688aa;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    }
+    body.light #citystate {
+      color: #557799;
+      text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
     }
 
     /* Toggle Buttons */
@@ -303,7 +317,7 @@
     .bubble {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.4;
+      opacity: 0.5; /* increased opacity for brightness */
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
     }
@@ -326,7 +340,8 @@
 
   <!-- Weather, Location & Clock -->
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
-    <div id="location" aria-label="User location">Loading location...</div>
+    <div id="citystate" aria-label="City and state">Loading city and state...</div>
+    <div id="location" aria-label="User latitude and longitude">Loading location...</div>
     <div id="clock" aria-label="Local time">Loading time...</div>
     <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
@@ -360,6 +375,11 @@
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const greetingEl = document.getElementById('greeting');
+    const cityStateEl = document.getElementById('citystate');
+    const locationEl = document.getElementById('location');
+    const clockEl = document.getElementById('clock');
+    const weatherEl = document.getElementById('weather');
+    const bgContainer = document.getElementById('bg-animation-3');
 
     // Load saved theme
     const savedTheme = localStorage.getItem('theme');
@@ -384,13 +404,11 @@
       updateBgColors();
     });
 
-    const bgContainer = document.getElementById('bg-animation-3');
-
-    // Shades of the blue color for bubbles
+    // Shades of the blue color for bubbles - brighter, slight variation
     const bubbleColors = [
-      'rgba(51, 153, 255, 0.2)',  // darker
-      'rgba(102, 204, 255, 0.2)', // original
-      'rgba(153, 229, 255, 0.2)'  // lighter
+      'rgba(102, 217, 255, 0.3)',  // brighter darker shade
+      'rgba(128, 229, 255, 0.3)', // brighter original
+      'rgba(170, 245, 255, 0.3)'  // brighter lighter shade
     ];
 
     // Create bubble function with option for starting near top (for variety)
@@ -409,10 +427,10 @@
 
       // Adjust color opacity slightly for light mode
       if (isLight) {
-        // Light mode colors: make them a bit brighter
-        if(colorIndex === 0) baseColor = 'rgba(80, 170, 255, 0.15)';
-        else if(colorIndex === 1) baseColor = 'rgba(140, 215, 255, 0.15)';
-        else baseColor = 'rgba(190, 240, 255, 0.15)';
+        // Light mode colors: make them a bit brighter still
+        if(colorIndex === 0) baseColor = 'rgba(140, 240, 255, 0.25)';
+        else if(colorIndex === 1) baseColor = 'rgba(180, 255, 255, 0.25)';
+        else baseColor = 'rgba(210, 255, 255, 0.25)';
       }
 
       bubble.style.backgroundColor = baseColor;
@@ -442,9 +460,9 @@
         let colorIndex = Math.floor(Math.random() * bubbleColors.length);
         let baseColor = bubbleColors[colorIndex];
         if (isLight) {
-          if(colorIndex === 0) baseColor = 'rgba(80, 170, 255, 0.15)';
-          else if(colorIndex === 1) baseColor = 'rgba(140, 215, 255, 0.15)';
-          else baseColor = 'rgba(190, 240, 255, 0.15)';
+          if(colorIndex === 0) baseColor = 'rgba(140, 240, 255, 0.25)';
+          else if(colorIndex === 1) baseColor = 'rgba(180, 255, 255, 0.25)';
+          else baseColor = 'rgba(210, 255, 255, 0.25)';
         }
         el.style.backgroundColor = baseColor;
       }
@@ -462,37 +480,60 @@
     }
     updateGreeting();
 
-    // Clock update
-    const clockEl = document.getElementById('clock');
-    const weatherEl = document.getElementById('weather');
-    const locationEl = document.getElementById('location');
-
-    function updateTime() {
+    // Update clock every second with seconds shown
+    function updateClock() {
       const now = new Date();
-      clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      updateGreeting();
+      const options = {hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: true};
+      clockEl.textContent = now.toLocaleTimeString([], options);
     }
-    setInterval(updateTime, 1000);
-    updateTime();
+    updateClock();
+    setInterval(() => {
+      updateClock();
+      updateGreeting();
+    }, 1000);
 
-    // Fetch location and weather data
+    // Fetch weather data using Open-Meteo API, imperial units
     async function fetchWeather() {
       if (!navigator.geolocation) {
-        locationEl.textContent = 'Geolocation not supported';
+        cityStateEl.textContent = 'Geolocation not supported';
+        locationEl.textContent = '';
         weatherEl.textContent = '';
         return;
       }
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        // Use Open-Meteo API, imperial units: temperature in F
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+
+        // Fetch city and state via OpenStreetMap Nominatim API
         try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error('Network response not ok');
-          const data = await response.json();
-          const tempF = data.current_weather.temperature;
-          const wind = data.current_weather.windspeed;
+          const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+          if (!geoResp.ok) throw new Error('Geo location fetch failed');
+          const geoData = await geoResp.json();
+
+          // Extract city and state or fallback
+          let city = '';
+          let state = '';
+          if (geoData.address) {
+            city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
+            state = geoData.address.state || geoData.address.county || '';
+          }
+          if (city && state) {
+            cityStateEl.textContent = `${city}, ${state}`;
+          } else {
+            cityStateEl.textContent = 'Unknown Location';
+          }
+        } catch {
+          cityStateEl.textContent = 'Location unavailable';
+        }
+
+        // Fetch weather from Open-Meteo API in imperial units (F)
+        try {
+          const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+          const weatherResp = await fetch(weatherUrl);
+          if (!weatherResp.ok) throw new Error('Weather fetch failed');
+          const weatherData = await weatherResp.json();
+          const tempF = weatherData.current_weather.temperature;
+          const wind = weatherData.current_weather.windspeed;
           locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
           weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph`;
         } catch {
@@ -500,7 +541,8 @@
           weatherEl.textContent = '';
         }
       }, () => {
-        locationEl.textContent = 'Location permission denied';
+        cityStateEl.textContent = 'Location permission denied';
+        locationEl.textContent = '';
         weatherEl.textContent = '';
       });
     }
@@ -513,7 +555,6 @@
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
       window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
     });
-
   </script>
 </body>
 </html>
