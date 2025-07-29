@@ -29,8 +29,13 @@
     }
 
     /* Base styles */
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-y: hidden; /* Prevent vertical scrollbar */
+    }
+    body {
       background-color: var(--bg-dark);
       color: var(--text-dark);
       font-family: 'Montserrat', sans-serif;
@@ -43,7 +48,6 @@
       overflow-x: hidden;
       position: relative;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
-      z-index: 1;
     }
     body.light {
       background-color: var(--bg-light);
@@ -57,8 +61,6 @@
       margin-bottom: 5px;
       text-align: center;
       user-select: none;
-      position: relative;
-      z-index: 10;
     }
 
     p#greeting {
@@ -69,8 +71,6 @@
       color: #66ccff;
       user-select: none;
       text-shadow: 0 0 6px #3399ff;
-      position: relative;
-      z-index: 10;
     }
 
     p#welcome {
@@ -81,8 +81,6 @@
       text-align: center;
       max-width: 600px;
       user-select: none;
-      position: relative;
-      z-index: 10;
     }
 
     .button-container {
@@ -93,8 +91,6 @@
       width: 100%;
       max-width: 600px;
       margin-bottom: 40px;
-      position: relative;
-      z-index: 10;
     }
 
     .service-button {
@@ -121,7 +117,7 @@
       position: relative;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
       user-select: none;
-      z-index: 10;
+      z-index: 10; /* Ensure buttons are above bubbles */
     }
     body.light .service-button {
       background-color: var(--button-bg-light);
@@ -161,7 +157,7 @@
       opacity: 1;
       pointer-events: none;
       transition: opacity 0.3s;
-      z-index: 20;
+      z-index: 11;
       text-shadow: none;
     }
     body.light .service-button[data-tooltip]:hover::after {
@@ -195,30 +191,34 @@
     #weather-clock {
       margin-bottom: 30px;
       display: flex;
-      gap: 40px;
+      flex-direction: column;
+      gap: 6px;
       align-items: center;
       font-size: 1.2rem;
       font-weight: 500;
       color: #99ccff;
       user-select: none;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
-      z-index: 10;
+      z-index: 10; /* Above bubbles */
       position: relative;
       justify-content: center;
-      flex-wrap: wrap;
     }
     body.light #weather-clock {
       color: #336699;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
+
+    /* Location display */
     #location {
-      width: 100%;
-      text-align: center;
       font-weight: 600;
-      margin-bottom: 6px;
+      font-size: 1.1rem;
+      color: #aaccff;
+      text-shadow: 0 0 4px rgba(0,0,0,0.6);
       user-select: none;
-      position: relative;
-      z-index: 10;
+    }
+    body.light #location {
+      color: #6688aa;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
 
     /* Toggle Buttons */
@@ -281,23 +281,24 @@
         padding: 15px;
       }
       #weather-clock {
-        gap: 20px;
+        gap: 10px;
         font-size: 1.1rem;
       }
       #toggle-theme {
+        font-size: 0.85rem;
+        padding: 6px 10px;
         right: 15px;
       }
     }
 
     /* Background Animations */
-    /* Only bubbles background */
+    /* Only bubbles now */
     #bg-animation-3 {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 0; /* behind everything */
+      z-index: 0;
       overflow: hidden;
-      display: block;
     }
     .bubble {
       position: absolute;
@@ -315,7 +316,7 @@
   </style>
 </head>
 <body>
-  <!-- Toggle Theme Button Only -->
+  <!-- Toggle Theme Button -->
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
 
   <!-- Header & Greeting -->
@@ -323,7 +324,7 @@
   <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
-  <!-- Weather & Clock -->
+  <!-- Weather, Location & Clock -->
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
     <div id="location" aria-label="User location">Loading location...</div>
     <div id="clock" aria-label="Local time">Loading time...</div>
@@ -347,7 +348,7 @@
     </button>
   </div>
 
-  <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center; position: relative; z-index: 10;">
+  <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
     &copy; 2025 Michael Hill &mdash; Last updated July 29
   </footer>
 
@@ -373,47 +374,48 @@
         body.classList.remove('light');
         toggleThemeBtn.textContent = '🌙 Dark Mode';
         localStorage.setItem('theme', 'dark');
-        updateBubbleColors(false);
       } else {
         body.classList.add('light');
         toggleThemeBtn.textContent = '🌞 Light Mode';
         localStorage.setItem('theme', 'light');
-        updateBubbleColors(true);
       }
+      updateBgColors();
     });
 
-    // Background bubbles container
-    const bubblesContainer = document.getElementById('bg-animation-3');
+    const bgContainer = document.getElementById('bg-animation-3');
 
-    // Create bubbles
+    // Create bubble function with option for starting near top (for variety)
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
       const size = 15 + Math.random() * 15;
       bubble.style.width = bubble.style.height = size + 'px';
       bubble.style.left = (Math.random() * 100) + 'vw';
-      bubble.style.top = (40 + Math.random() * 50) + 'vh';
-      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.4)' : 'rgba(102, 204, 255, 0.4)';
+      // To get some bubbles near top, random top between 0 and 90 vh
+      bubble.style.top = (Math.random() * 90) + 'vh';
+      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
       bubble.style.animationDuration = (6 + Math.random() * 6) + 's';
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = (Math.random() * 6) + 's';
       return bubble;
     }
 
-    // Populate bubbles (45 total)
+    // Populate bubbles
     function populateBubbles() {
-      bubblesContainer.innerHTML = '';
+      bgContainer.innerHTML = '';
       const isLight = body.classList.contains('light');
-      for(let i=0; i<45; i++) {
-        bubblesContainer.appendChild(createBubble(i, isLight));
+      const bubbleCount = 75;
+      for(let i = 0; i < bubbleCount; i++) {
+        bgContainer.appendChild(createBubble(i, isLight));
       }
     }
     populateBubbles();
 
     // Update bubble colors on theme change
-    function updateBubbleColors(isLight) {
-      for (const bubble of bubblesContainer.children) {
-        bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.4)' : 'rgba(102, 204, 255, 0.4)';
+    function updateBgColors() {
+      const isLight = body.classList.contains('light');
+      for(let el of bgContainer.children) {
+        el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
       }
     }
 
@@ -429,20 +431,15 @@
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Weather & Location fetch
-    async function fetchWeatherAndLocation() {
+    // Fetch location and weather data
+    async function fetchLocationAndWeather() {
       try {
         const locRes = await fetch('https://ipapi.co/json/');
         const locData = await locRes.json();
-
-        // Show location
-        let locationStr = 'Location unavailable';
-        if(locData.city && locData.region && locData.country_name) {
-          locationStr = `${locData.city}, ${locData.region}, ${locData.country_name}`;
-        } else if(locData.city && locData.country_name) {
-          locationStr = `${locData.city}, ${locData.country_name}`;
-        }
-        locationEl.textContent = locationStr;
+        const city = locData.city || 'Unknown city';
+        const region = locData.region || '';
+        const country = locData.country_name || '';
+        locationEl.textContent = `${city}${region ? ', ' + region : ''}${country ? ', ' + country : ''}`;
 
         const lat = locData.latitude;
         const lon = locData.longitude;
@@ -450,11 +447,10 @@
           weatherEl.textContent = 'Weather location unavailable';
           return;
         }
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`);
         const weatherData = await weatherRes.json();
         if(weatherData && weatherData.current_weather) {
-          const tempC = weatherData.current_weather.temperature;
-          const tempF = (tempC * 9/5) + 32;
+          const tempF = weatherData.current_weather.temperature;
           const conditionCode = weatherData.current_weather.weathercode;
           let conditionText = 'Clear';
           if(conditionCode >= 1 && conditionCode <= 3) conditionText = 'Partly Cloudy';
@@ -465,24 +461,24 @@
           else if(conditionCode >= 80 && conditionCode <= 82) conditionText = 'Rain Showers';
           else if(conditionCode >= 95 && conditionCode <= 99) conditionText = 'Thunderstorm';
 
-          weatherEl.textContent = `${tempF.toFixed(1)}°F, ${conditionText}`;
+          weatherEl.textContent = `${tempF}°F, ${conditionText}`;
         } else {
           weatherEl.textContent = 'Weather unavailable';
         }
       } catch (e) {
-        locationEl.textContent = 'Location fetch error';
         weatherEl.textContent = 'Weather fetch error';
-        console.error('Weather/location fetch failed:', e);
+        locationEl.textContent = 'Location fetch error';
+        console.error('Fetch failed:', e);
       }
     }
-    fetchWeatherAndLocation();
+    fetchLocationAndWeather();
 
     // Open links on service buttons
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      window.open('https://jellyfin.mhservers.com', '_blank', 'noopener');
+      window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      window.open('https://nextcloud.mhservers.com', '_blank', 'noopener');
+      window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
     });
   </script>
 </body>
