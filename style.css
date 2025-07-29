@@ -1,0 +1,102 @@
+body {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  transition: background-color 0.5s, color 0.5s;
+  color: #111;
+  background-color: #f1f1f1;
+  overflow: hidden;
+}
+
+body.dark {
+  color: #f1f1f1;
+  background-color: #111;
+}
+
+#background-animation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle, #ccc, transparent);
+  transition: background 1s ease;
+}
+
+.animation-1.light { background: radial-gradient(circle, #a1c4fd, #c2e9fb); }
+.animation-1.dark { background: radial-gradient(circle, #0f2027, #203a43, #2c5364); }
+
+.animation-2.light { background: linear-gradient(-45deg, #fbc2eb, #a6c1ee); }
+.animation-2.dark { background: linear-gradient(-45deg, #232526, #414345); }
+
+.animation-3.light { background: conic-gradient(from 90deg, #fbd3e9, #bb377d); }
+.animation-3.dark { background: conic-gradient(from 90deg, #000428, #004e92); }
+
+.bg-toggle, .mode-toggle {
+  position: fixed;
+  top: 20px;
+  padding: 10px 14px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background 0.3s;
+  z-index: 10;
+}
+
+.bg-toggle {
+  left: 20px;
+}
+
+.mode-toggle {
+  right: 20px;
+}
+
+.container {
+  text-align: center;
+  margin-top: 120px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.service-button {
+  padding: 16px 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  background-color: #444;
+  color: white;
+  text-decoration: none;
+  transition: transform 0.2s, font-weight 0.2s;
+}
+
+.service-button:hover {
+  transform: scale(1.1);
+  font-weight: 900;
+}
+
+.widgets {
+  margin-top: 60px;
+  font-size: 1.1rem;
+}
+
+#clock {
+  margin-bottom: 10px;
+}
