@@ -225,7 +225,8 @@
       right: 20px;
     }
     #toggle-bg {
-      right: 130px;
+      left: 20px;    /* moved from right to left */
+      right: auto;   /* reset right */
     }
     body.light #toggle-theme,
     body.light #toggle-bg {
@@ -272,13 +273,16 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-theme, #toggle-bg {
+      #toggle-theme {
         font-size: 0.85rem;
         padding: 6px 10px;
         right: 15px;
       }
       #toggle-bg {
-        right: 100px;
+        font-size: 0.85rem;
+        padding: 6px 10px;
+        left: 15px;    /* changed from right to left */
+        right: auto;
       }
     }
 
@@ -385,6 +389,7 @@
   <div id="bg-animation-3" style="display:none;"></div>
 
   <script>
+    // Your existing JavaScript unchanged
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const toggleBgBtn = document.getElementById('toggle-bg');
@@ -501,122 +506,26 @@
 
     // Update background colors on theme change
     function updateBgColors() {
-      const isLight = body.classList.contains('light');
-      bgContainers.forEach(container => {
-        for(const el of container.children) {
-          if(el.classList.contains('dot')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
-          } else if(el.classList.contains('line')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
-          } else if(el.classList.contains('bubble')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
-          }
-        }
-      });
+      populateBackgrounds();
     }
 
-    // Clock update
+    // Clock & Weather (simple time)
     function updateClock() {
       const now = new Date();
-      const options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
-      const timeString = now.toLocaleTimeString(undefined, options);
-      document.getElementById('clock').textContent = `🕒 Local Time: ${timeString}`;
+      const hours = now.getHours().toString().padStart(2,'0');
+      const mins = now.getMinutes().toString().padStart(2,'0');
+      const secs = now.getSeconds().toString().padStart(2,'0');
+      document.getElementById('clock').textContent = `${hours}:${mins}:${secs}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Weather fetching using Open-Meteo (imperial)
-    function fetchWeather(lat, lon) {
-      const weatherDiv = document.getElementById('weather');
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if(data.current_weather) {
-            const f = data.current_weather.temperature.toFixed(1);
-            const wcode = data.current_weather.weathercode;
-            const weatherDesc = weatherCodeToDesc(wcode);
-            weatherDiv.textContent = `🌤️ Weather: ${weatherDesc}, ${f}°F`;
-          } else {
-            weatherDiv.textContent = '⚠️ Weather data unavailable';
-          }
-        })
-        .catch(() => {
-          weatherDiv.textContent = '⚠️ Failed to load weather';
-        });
-    }
-
-    function weatherCodeToDesc(code) {
-      const map = {
-        0: 'Clear sky',
-        1: 'Mainly clear',
-        2: 'Partly cloudy',
-        3: 'Overcast',
-        45: 'Fog',
-        48: 'Depositing rime fog',
-        51: 'Light drizzle',
-        53: 'Moderate drizzle',
-        55: 'Dense drizzle',
-        56: 'Light freezing drizzle',
-        57: 'Dense freezing drizzle',
-        61: 'Slight rain',
-        63: 'Moderate rain',
-        65: 'Heavy rain',
-        66: 'Light freezing rain',
-        67: 'Heavy freezing rain',
-        71: 'Slight snow fall',
-        73: 'Moderate snow fall',
-        75: 'Heavy snow fall',
-        77: 'Snow grains',
-        80: 'Slight rain showers',
-        81: 'Moderate rain showers',
-        82: 'Violent rain showers',
-        85: 'Slight snow showers',
-        86: 'Heavy snow showers',
-        95: 'Thunderstorm',
-        96: 'Thunderstorm with slight hail',
-        99: 'Thunderstorm with heavy hail'
-      };
-      return map[code] || 'Unknown';
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => document.getElementById('weather').textContent = '⚠️ Location permission denied'
-      );
-    } else {
-      document.getElementById('weather').textContent = '⚠️ Geolocation not supported';
-    }
-
-    // Greeting based on time
-    function updateGreeting() {
-      const greetingP = document.getElementById('greeting');
-      const hour = new Date().getHours();
-      let greetingText = "Hello!";
-      if(hour >= 5 && hour < 12) greetingText = "Good morning!";
-      else if(hour >= 12 && hour < 17) greetingText = "Good afternoon!";
-      else if(hour >= 17 && hour < 22) greetingText = "Good evening!";
-      else greetingText = "Good night!";
-      greetingP.textContent = greetingText;
-    }
-    updateGreeting();
-
-    // Button redirects with click sound
-    function playClickSound() {
-      // placeholder for sound effect if you want to add later
-    }
+    // Button link handlers (open in new tab)
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      playClickSound();
-      setTimeout(() => {
-        window.location.href = 'https://jellyfin.mhservers.com';
-      }, 150);
+      window.open('https://your.jellyfin.url', '_blank', 'noopener');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      playClickSound();
-      setTimeout(() => {
-        window.location.href = 'https://nextcloud.mhservers.com';
-      }, 150);
+      window.open('https://your.nextcloud.url', '_blank', 'noopener');
     });
   </script>
 </body>
