@@ -311,6 +311,7 @@
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
+      display: none;
     }
     .line {
       position: absolute;
@@ -327,6 +328,7 @@
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
+      display: none;
     }
     .bubble {
       position: absolute;
@@ -352,27 +354,31 @@
   </style>
 </head>
 <body>
-  <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
-  <button id="toggle-bg" aria-label="Toggle background animation">Background: Dots</button>
+  <!-- Toggle Buttons -->
+  <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
+  <button id="toggle-bg" aria-label="Toggle background animation" type="button">Background: Dots</button>
 
+  <!-- Header & Greeting -->
   <h1>Welcome to MH Servers</h1>
   <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
+  <!-- Weather & Clock -->
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
     <div id="clock" aria-label="Local time">Loading time...</div>
     <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
 
+  <!-- Service Buttons -->
   <div class="button-container">
-    <button class="service-button" id="jellyfin-btn" data-tooltip="Access photos, videos and more">
+    <button class="service-button" id="jellyfin-btn" data-tooltip="Access photos, videos and more" type="button" aria-describedby="tooltip-jellyfin">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M3 22v-20l18 10-18 10z"/>
       </svg>
       Jellyfin
     </button>
 
-    <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files">
+    <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files" type="button" aria-describedby="tooltip-nextcloud">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M4 15v-6h16v6h-16zM4 5h16v2h-16zM4 19h16v2h-16z"/>
       </svg>
@@ -380,21 +386,21 @@
     </button>
   </div>
 
-  <footer>
+  <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
     &copy; 2025 Michael Hill &mdash; Last updated July 29
   </footer>
 
   <!-- Background animation containers -->
   <div id="bg-animation-1"></div>
-  <div id="bg-animation-2" style="display:none;"></div>
-  <div id="bg-animation-3" style="display:none;"></div>
+  <div id="bg-animation-2"></div>
+  <div id="bg-animation-3"></div>
 
   <script>
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const toggleBgBtn = document.getElementById('toggle-bg');
 
-    // Initial theme load
+    // Load saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
       body.classList.add('light');
@@ -403,7 +409,7 @@
       toggleThemeBtn.textContent = '🌙 Dark Mode';
     }
 
-    // Theme toggle handler
+    // Toggle theme on button click
     toggleThemeBtn.addEventListener('click', () => {
       if(body.classList.contains('light')) {
         body.classList.remove('light');
@@ -417,7 +423,7 @@
       updateBgColors();
     });
 
-    // Background animations containers
+    // Background animation containers and state
     const bgContainers = [
       document.getElementById('bg-animation-1'),
       document.getElementById('bg-animation-2'),
@@ -425,89 +431,85 @@
     ];
     let currentBgIndex = 0;
 
-    // Update background button text
     function updateBgButtonText() {
       const names = ['Dots', 'Lines', 'Bubbles'];
       toggleBgBtn.textContent = `Background: ${names[currentBgIndex]}`;
     }
 
-    // Background toggle button handler
+    // Toggle background animation style
     toggleBgBtn.addEventListener('click', () => {
-      // Hide current
       bgContainers[currentBgIndex].style.display = 'none';
-      // Next index
       currentBgIndex = (currentBgIndex + 1) % bgContainers.length;
-      // Show new
       bgContainers[currentBgIndex].style.display = 'block';
       updateBgButtonText();
     });
 
-    // Initialize background button text
+    // Initial button text
     updateBgButtonText();
 
-    // Background animations data
+    // Background element creators
     function createDot(index, isLight) {
       const dot = document.createElement('div');
       dot.classList.add('dot');
-      dot.style.width = dot.style.height = `${6 + Math.random()*6}px`;
-      dot.style.left = `${Math.random()*100}vw`;
-      dot.style.top = `${110 + Math.random()*20}vh`;
+      const size = 6 + Math.random() * 6;
+      dot.style.width = dot.style.height = size + 'px';
+      dot.style.left = (Math.random() * 100) + 'vw';
+      dot.style.top = (110 + Math.random() * 20) + 'vh';
       dot.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
-      dot.style.animationDuration = `${8 + Math.random()*8}s`;
+      dot.style.animationDuration = (8 + Math.random() * 8) + 's';
       dot.style.animationName = 'moveDot';
-      dot.style.animationDelay = `${Math.random()*8}s`;
+      dot.style.animationDelay = (Math.random() * 8) + 's';
       return dot;
     }
+
     function createLine(index, isLight) {
       const line = document.createElement('div');
       line.classList.add('line');
-      line.style.height = `${20 + Math.random()*50}px`;
-      line.style.top = `${Math.random()*100}vh`;
-      line.style.left = `-${10 + Math.random()*20}vw`;
+      line.style.height = (20 + Math.random() * 50) + 'px';
+      line.style.top = (Math.random() * 100) + 'vh';
+      line.style.left = (-10 - Math.random() * 20) + 'vw';
       line.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
-      line.style.animationDuration = `${10 + Math.random()*10}s`;
+      line.style.animationDuration = (10 + Math.random() * 10) + 's';
       line.style.animationName = 'moveLine';
-      line.style.animationDelay = `${Math.random()*10}s`;
+      line.style.animationDelay = (Math.random() * 10) + 's';
       return line;
     }
+
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
-      bubble.style.width = bubble.style.height = `${15 + Math.random()*15}px`;
-      bubble.style.left = `${Math.random()*100}vw`;
-      bubble.style.top = `${40 + Math.random()*50}vh`;
+      const size = 15 + Math.random() * 15;
+      bubble.style.width = bubble.style.height = size + 'px';
+      bubble.style.left = (Math.random() * 100) + 'vw';
+      bubble.style.top = (40 + Math.random() * 50) + 'vh';
       bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
-      bubble.style.animationDuration = `${6 + Math.random()*6}s`;
+      bubble.style.animationDuration = (6 + Math.random() * 6) + 's';
       bubble.style.animationName = 'floatBubble';
-      bubble.style.animationDelay = `${Math.random()*6}s`;
+      bubble.style.animationDelay = (Math.random() * 6) + 's';
       return bubble;
     }
 
-    // Fill bg containers with elements
+    // Populate backgrounds with animated elements
     function populateBackgrounds() {
-      // Clear containers first
-      bgContainers.forEach(c => c.innerHTML = '');
+      bgContainers.forEach(container => container.innerHTML = '');
       const isLight = body.classList.contains('light');
 
-      // Dots
       for(let i=0; i<30; i++) {
         bgContainers[0].appendChild(createDot(i, isLight));
       }
-      // Lines
       for(let i=0; i<20; i++) {
         bgContainers[1].appendChild(createLine(i, isLight));
       }
-      // Bubbles
       for(let i=0; i<25; i++) {
         bgContainers[2].appendChild(createBubble(i, isLight));
       }
     }
     populateBackgrounds();
 
-    // Update background colors on theme change
+    // Update background element colors on theme change
     function updateBgColors() {
       const isLight = body.classList.contains('light');
-      bgContainers.forEach((container, idx) => {
+      bgContainers.forEach(container => {
         for(let el of container.children) {
           if(el.classList.contains('dot')) {
             el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
@@ -520,7 +522,7 @@
       });
     }
 
-    // Weather and clock update
+    // Clock update
     const clockEl = document.getElementById('clock');
     const weatherEl = document.getElementById('weather');
 
@@ -531,10 +533,9 @@
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Fetch weather via IP location (free API)
+    // Weather fetch (free API)
     async function fetchWeather() {
       try {
-        // Get location by IP
         const locRes = await fetch('https://ipapi.co/json/');
         const locData = await locRes.json();
         const lat = locData.latitude;
@@ -543,14 +544,12 @@
           weatherEl.textContent = 'Weather location unavailable';
           return;
         }
-        // Use Open-Meteo free API (no key)
         const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const weatherData = await weatherRes.json();
         if(weatherData && weatherData.current_weather) {
           const tempC = weatherData.current_weather.temperature;
           const conditionCode = weatherData.current_weather.weathercode;
           let conditionText = 'Clear';
-          // Simple weather code interpretation
           if(conditionCode >= 1 && conditionCode <= 3) conditionText = 'Partly Cloudy';
           else if(conditionCode >= 45 && conditionCode <= 48) conditionText = 'Foggy';
           else if(conditionCode >= 51 && conditionCode <= 57) conditionText = 'Drizzle';
@@ -570,7 +569,7 @@
     }
     fetchWeather();
 
-    // Buttons open links
+    // Open links on service buttons
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
       window.open('https://jellyfin.example.com', '_blank');
     });
