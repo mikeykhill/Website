@@ -212,9 +212,12 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
 
-    #toggle-theme, #toggle-bg {
+    /* Adjusted button positions: 
+       toggle-bg top-left, toggle-theme top-right */
+    #toggle-bg {
       position: fixed;
       top: 20px;
+      left: 20px;
       padding: 8px 14px;
       font-size: 0.9rem;
       font-weight: 600;
@@ -232,10 +235,24 @@
       text-shadow: inherit;
     }
     #toggle-theme {
+      position: fixed;
+      top: 20px;
       right: 20px;
-    }
-    #toggle-bg {
-      right: 130px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        color 0.3s;
+      border: 2px solid var(--button-border-dark);
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+      z-index: 30;
+      text-shadow: inherit;
     }
     body.light #toggle-theme,
     body.light #toggle-bg {
@@ -284,10 +301,6 @@
       #toggle-theme, #toggle-bg {
         font-size: 0.85rem;
         padding: 6px 10px;
-        right: 15px;
-      }
-      #toggle-bg {
-        right: 100px;
       }
     }
 
@@ -352,8 +365,8 @@
   </style>
 </head>
 <body>
-  <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
   <button id="toggle-bg" aria-label="Toggle background animation">Background: Dots</button>
+  <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
 
   <h1>Welcome to MH Servers</h1>
   <p id="greeting">Hello!</p>
@@ -444,7 +457,8 @@
       dot.style.width = dot.style.height = `${6 + Math.random()*6}px`;
       dot.style.left = `${Math.random()*100}vw`;
       dot.style.top = `${110 + Math.random()*20}vh`;
-      dot.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
+      // Invert colors: if light, use darker dot; if dark, lighter dot:
+      dot.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.3)' : 'rgba(51, 153, 255, 0.3)';
       dot.style.animationDuration = `${8 + Math.random()*8}s`;
       dot.style.animationName = 'moveDot';
       dot.style.animationDelay = `${Math.random()*8}s`;
@@ -456,7 +470,8 @@
       line.style.height = `${20 + Math.random()*50}px`;
       line.style.top = `${Math.random()*100}vh`;
       line.style.left = `-${10 + Math.random()*20}vw`;
-      line.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
+      // Invert colors:
+      line.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.15)' : 'rgba(51, 153, 255, 0.15)';
       line.style.animationDuration = `${10 + Math.random()*10}s`;
       line.style.animationName = 'moveLine';
       line.style.animationDelay = `${Math.random()*10}s`;
@@ -468,7 +483,8 @@
       bubble.style.width = bubble.style.height = `${15 + Math.random()*15}px`;
       bubble.style.left = `${Math.random()*100}vw`;
       bubble.style.top = `${40 + Math.random()*50}vh`;
-      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
+      // Invert colors:
+      bubble.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.2)' : 'rgba(51, 153, 255, 0.2)';
       bubble.style.animationDuration = `${6 + Math.random()*6}s`;
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = `${Math.random()*6}s`;
@@ -479,136 +495,3 @@
       bgContainers.forEach(c => c.innerHTML = '');
       const isLight = body.classList.contains('light');
 
-      for(let i=0; i<30; i++) {
-        bgContainers[0].appendChild(createDot(i, isLight));
-      }
-      for(let i=0; i<20; i++) {
-        bgContainers[1].appendChild(createLine(i, isLight));
-      }
-      for(let i=0; i<25; i++) {
-        bgContainers[2].appendChild(createBubble(i, isLight));
-      }
-    }
-    populateBackgrounds();
-
-    function updateBgColors() {
-      const isLight = body.classList.contains('light');
-      bgContainers.forEach(container => {
-        for(const el of container.children) {
-          if(el.classList.contains('dot')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
-          } else if(el.classList.contains('line')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
-          } else if(el.classList.contains('bubble')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
-          }
-        }
-      });
-    }
-
-    // Clock update
-    function updateClock() {
-      const now = new Date();
-      const options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
-      const timeString = now.toLocaleTimeString(undefined, options);
-      document.getElementById('clock').textContent = `🕒 Local Time: ${timeString}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Weather fetching using Open-Meteo (imperial)
-    function fetchWeather(lat, lon) {
-      const weatherDiv = document.getElementById('weather');
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if(data.current_weather) {
-            const f = data.current_weather.temperature.toFixed(1);
-            const wcode = data.current_weather.weathercode;
-            const weatherDesc = weatherCodeToDesc(wcode);
-            weatherDiv.textContent = `🌤️ Weather: ${weatherDesc}, ${f}°F`;
-          } else {
-            weatherDiv.textContent = '⚠️ Weather data unavailable';
-          }
-        })
-        .catch(() => {
-          weatherDiv.textContent = '⚠️ Failed to load weather';
-        });
-    }
-
-    function weatherCodeToDesc(code) {
-      const map = {
-        0: 'Clear sky',
-        1: 'Mainly clear',
-        2: 'Partly cloudy',
-        3: 'Overcast',
-        45: 'Fog',
-        48: 'Depositing rime fog',
-        51: 'Light drizzle',
-        53: 'Moderate drizzle',
-        55: 'Dense drizzle',
-        56: 'Light freezing drizzle',
-        57: 'Dense freezing drizzle',
-        61: 'Slight rain',
-        63: 'Moderate rain',
-        65: 'Heavy rain',
-        66: 'Light freezing rain',
-        67: 'Heavy freezing rain',
-        71: 'Slight snow fall',
-        73: 'Moderate snow fall',
-        75: 'Heavy snow fall',
-        77: 'Snow grains',
-        80: 'Slight rain showers',
-        81: 'Moderate rain showers',
-        82: 'Violent rain showers',
-        85: 'Slight snow showers',
-        86: 'Heavy snow showers',
-        95: 'Thunderstorm',
-        96: 'Thunderstorm with slight hail',
-        99: 'Thunderstorm with heavy hail'
-      };
-      return map[code] || 'Unknown';
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => document.getElementById('weather').textContent = '⚠️ Location permission denied'
-      );
-    } else {
-      document.getElementById('weather').textContent = '⚠️ Geolocation not supported';
-    }
-
-    // Greeting based on time
-    function updateGreeting() {
-      const greetingP = document.getElementById('greeting');
-      const hour = new Date().getHours();
-      let greetingText = "Hello!";
-      if(hour >= 5 && hour < 12) greetingText = "Good morning!";
-      else if(hour >= 12 && hour < 17) greetingText = "Good afternoon!";
-      else if(hour >= 17 && hour < 22) greetingText = "Good evening!";
-      else greetingText = "Good night!";
-      greetingP.textContent = greetingText;
-    }
-    updateGreeting();
-
-    // Button redirects with click sound (placeholder)
-    function playClickSound() {
-      // You can add sound here if desired later
-    }
-    document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      playClickSound();
-      setTimeout(() => {
-        window.location.href = 'https://jellyfin.mhservers.com';
-      }, 150);
-    });
-    document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      playClickSound();
-      setTimeout(() => {
-        window.location.href = 'https://nextcloud.mhservers.com';
-      }, 150);
-    });
-  </script>
-</body>
-</html>
