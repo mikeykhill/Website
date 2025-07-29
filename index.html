@@ -43,6 +43,7 @@
       overflow-x: hidden;
       position: relative;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
+      z-index: 1;
     }
     body.light {
       background-color: var(--bg-light);
@@ -56,6 +57,8 @@
       margin-bottom: 5px;
       text-align: center;
       user-select: none;
+      position: relative;
+      z-index: 10;
     }
 
     p#greeting {
@@ -66,6 +69,8 @@
       color: #66ccff;
       user-select: none;
       text-shadow: 0 0 6px #3399ff;
+      position: relative;
+      z-index: 10;
     }
 
     p#welcome {
@@ -76,6 +81,8 @@
       text-align: center;
       max-width: 600px;
       user-select: none;
+      position: relative;
+      z-index: 10;
     }
 
     .button-container {
@@ -86,6 +93,8 @@
       width: 100%;
       max-width: 600px;
       margin-bottom: 40px;
+      position: relative;
+      z-index: 10;
     }
 
     .service-button {
@@ -112,6 +121,7 @@
       position: relative;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
       user-select: none;
+      z-index: 10;
     }
     body.light .service-button {
       background-color: var(--button-bg-light);
@@ -151,7 +161,7 @@
       opacity: 1;
       pointer-events: none;
       transition: opacity 0.3s;
-      z-index: 10;
+      z-index: 20;
       text-shadow: none;
     }
     body.light .service-button[data-tooltip]:hover::after {
@@ -192,35 +202,30 @@
       color: #99ccff;
       user-select: none;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
-      z-index: 12;
+      z-index: 10;
       position: relative;
       justify-content: center;
+      flex-wrap: wrap;
     }
     body.light #weather-clock {
       color: #336699;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
-
-    /* Location display */
     #location {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #99ccff;
-      user-select: none;
-      text-shadow: 0 0 4px rgba(0,0,0,0.7);
-      margin-bottom: 6px;
+      width: 100%;
       text-align: center;
-      max-width: 100%;
-    }
-    body.light #location {
-      color: #336699;
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+      font-weight: 600;
+      margin-bottom: 6px;
+      user-select: none;
+      position: relative;
+      z-index: 10;
     }
 
     /* Toggle Buttons */
-    #toggle-theme, #toggle-bg {
+    #toggle-theme {
       position: fixed;
       top: 20px;
+      right: 20px;
       padding: 8px 14px;
       font-size: 0.9rem;
       font-weight: 600;
@@ -237,28 +242,17 @@
       z-index: 30;
       text-shadow: inherit;
     }
-    #toggle-theme {
-      right: 20px;
-    }
-    /* Moved toggle-bg button to top left */
-    #toggle-bg {
-      left: 20px;
-      right: auto;
-    }
-    body.light #toggle-theme,
-    body.light #toggle-bg {
+    body.light #toggle-theme {
       border-color: var(--button-border-light);
       background-color: var(--button-bg-light);
       color: var(--text-light);
     }
-    #toggle-theme:hover,
-    #toggle-bg:hover {
+    #toggle-theme:hover {
       background-color: var(--button-hover-bg-dark);
       border-color: var(--button-hover-border-dark);
       color: #99ddff;
     }
-    body.light #toggle-theme:hover,
-    body.light #toggle-bg:hover {
+    body.light #toggle-theme:hover {
       background-color: var(--button-hover-bg-light);
       border-color: var(--button-hover-border-light);
       color: #336699;
@@ -290,79 +284,30 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-theme, #toggle-bg {
-        font-size: 0.85rem;
-        padding: 6px 10px;
-      }
       #toggle-theme {
         right: 15px;
-      }
-      #toggle-bg {
-        left: 15px;
-        right: auto;
       }
     }
 
     /* Background Animations */
-    /* Style 1: Moving Dots */
-    #bg-animation-1 {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .dot {
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.8; /* Increased opacity */
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-
-    /* Style 2: Moving Lines */
-    #bg-animation-2 {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-      display: none;
-    }
-    .line {
-      position: absolute;
-      width: 2px;
-      opacity: 0.6; /* Increased opacity */
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-
-    /* Style 3: Floating bubbles */
+    /* Only bubbles background */
     #bg-animation-3 {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 0;
+      z-index: 0; /* behind everything */
       overflow: hidden;
-      display: none;
+      display: block;
     }
     .bubble {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.6; /* Increased opacity */
+      opacity: 0.4;
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
     }
 
     /* Animations keyframes */
-    @keyframes moveDot {
-      0% {transform: translateY(100vh);}
-      100% {transform: translateY(-10vh);}
-    }
-    @keyframes moveLine {
-      0% {transform: translateX(-10vw);}
-      100% {transform: translateX(110vw);}
-    }
     @keyframes floatBubble {
       0%, 100% {transform: translateY(0);}
       50% {transform: translateY(-20px);}
@@ -370,20 +315,17 @@
   </style>
 </head>
 <body>
-  <!-- Toggle Buttons -->
+  <!-- Toggle Theme Button Only -->
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
-  <button id="toggle-bg" aria-label="Toggle background animation" type="button">Background: Dots</button>
 
   <!-- Header & Greeting -->
   <h1>Welcome to MH Servers</h1>
   <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
-  <!-- Location Display -->
-  <div id="location" aria-live="polite" aria-atomic="true">Loading location...</div>
-
   <!-- Weather & Clock -->
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
+    <div id="location" aria-label="User location">Loading location...</div>
     <div id="clock" aria-label="Local time">Loading time...</div>
     <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
@@ -405,19 +347,16 @@
     </button>
   </div>
 
-  <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
+  <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center; position: relative; z-index: 10;">
     &copy; 2025 Michael Hill &mdash; Last updated July 29
   </footer>
 
-  <!-- Background animation containers -->
-  <div id="bg-animation-1"></div>
-  <div id="bg-animation-2"></div>
+  <!-- Background animation container -->
   <div id="bg-animation-3"></div>
 
   <script>
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
-    const toggleBgBtn = document.getElementById('toggle-bg');
 
     // Load saved theme
     const savedTheme = localStorage.getItem('theme');
@@ -434,66 +373,19 @@
         body.classList.remove('light');
         toggleThemeBtn.textContent = '🌙 Dark Mode';
         localStorage.setItem('theme', 'dark');
+        updateBubbleColors(false);
       } else {
         body.classList.add('light');
         toggleThemeBtn.textContent = '🌞 Light Mode';
         localStorage.setItem('theme', 'light');
+        updateBubbleColors(true);
       }
-      updateBgColors();
     });
 
-    // Background animation containers and state
-    const bgContainers = [
-      document.getElementById('bg-animation-1'),
-      document.getElementById('bg-animation-2'),
-      document.getElementById('bg-animation-3')
-    ];
-    let currentBgIndex = 0;
+    // Background bubbles container
+    const bubblesContainer = document.getElementById('bg-animation-3');
 
-    function updateBgButtonText() {
-      const names = ['Dots', 'Lines', 'Bubbles'];
-      toggleBgBtn.textContent = `Background: ${names[currentBgIndex]}`;
-    }
-
-    // Toggle background animation style
-    toggleBgBtn.addEventListener('click', () => {
-      bgContainers[currentBgIndex].style.display = 'none';
-      currentBgIndex = (currentBgIndex + 1) % bgContainers.length;
-      bgContainers[currentBgIndex].style.display = 'block';
-      updateBgButtonText();
-    });
-
-    // Initial button text
-    updateBgButtonText();
-
-    // Background element creators
-    function createDot(index, isLight) {
-      const dot = document.createElement('div');
-      dot.classList.add('dot');
-      const size = 6 + Math.random() * 6;
-      dot.style.width = dot.style.height = size + 'px';
-      dot.style.left = (Math.random() * 100) + 'vw';
-      dot.style.top = (110 + Math.random() * 20) + 'vh';
-      dot.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.5)' : 'rgba(102, 204, 255, 0.5)';
-      dot.style.animationDuration = (8 + Math.random() * 8) + 's';
-      dot.style.animationName = 'moveDot';
-      dot.style.animationDelay = (Math.random() * 8) + 's';
-      return dot;
-    }
-
-    function createLine(index, isLight) {
-      const line = document.createElement('div');
-      line.classList.add('line');
-      line.style.height = (20 + Math.random() * 50) + 'px';
-      line.style.top = (Math.random() * 100) + 'vh';
-      line.style.left = (-10 - Math.random() * 20) + 'vw';
-      line.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
-      line.style.animationDuration = (10 + Math.random() * 10) + 's';
-      line.style.animationName = 'moveLine';
-      line.style.animationDelay = (Math.random() * 10) + 's';
-      return line;
-    }
-
+    // Create bubbles
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
@@ -508,37 +400,21 @@
       return bubble;
     }
 
-    // Populate backgrounds with animated elements
-    function populateBackgrounds() {
-      bgContainers.forEach(container => container.innerHTML = '');
+    // Populate bubbles (45 total)
+    function populateBubbles() {
+      bubblesContainer.innerHTML = '';
       const isLight = body.classList.contains('light');
-
-      for(let i=0; i<30; i++) {
-        bgContainers[0].appendChild(createDot(i, isLight));
-      }
-      for(let i=0; i<20; i++) {
-        bgContainers[1].appendChild(createLine(i, isLight));
-      }
-      for(let i=0; i<25; i++) {
-        bgContainers[2].appendChild(createBubble(i, isLight));
+      for(let i=0; i<45; i++) {
+        bubblesContainer.appendChild(createBubble(i, isLight));
       }
     }
-    populateBackgrounds();
+    populateBubbles();
 
-    // Update background element colors on theme change
-    function updateBgColors() {
-      const isLight = body.classList.contains('light');
-      bgContainers.forEach(container => {
-        for(let el of container.children) {
-          if(el.classList.contains('dot')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.5)' : 'rgba(102, 204, 255, 0.5)';
-          } else if(el.classList.contains('line')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
-          } else if(el.classList.contains('bubble')) {
-            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.4)' : 'rgba(102, 204, 255, 0.4)';
-          }
-        }
-      });
+    // Update bubble colors on theme change
+    function updateBubbleColors(isLight) {
+      for (const bubble of bubblesContainer.children) {
+        bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.4)' : 'rgba(102, 204, 255, 0.4)';
+      }
     }
 
     // Clock update
@@ -578,6 +454,7 @@
         const weatherData = await weatherRes.json();
         if(weatherData && weatherData.current_weather) {
           const tempC = weatherData.current_weather.temperature;
+          const tempF = (tempC * 9/5) + 32;
           const conditionCode = weatherData.current_weather.weathercode;
           let conditionText = 'Clear';
           if(conditionCode >= 1 && conditionCode <= 3) conditionText = 'Partly Cloudy';
@@ -588,7 +465,7 @@
           else if(conditionCode >= 80 && conditionCode <= 82) conditionText = 'Rain Showers';
           else if(conditionCode >= 95 && conditionCode <= 99) conditionText = 'Thunderstorm';
 
-          weatherEl.textContent = `${tempC}°C, ${conditionText}`;
+          weatherEl.textContent = `${tempF.toFixed(1)}°F, ${conditionText}`;
         } else {
           weatherEl.textContent = 'Weather unavailable';
         }
@@ -602,10 +479,10 @@
 
     // Open links on service buttons
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      window.open('https://jellyfin.mhservers.com', '_blank');
+      window.open('https://jellyfin.mhservers.com', '_blank', 'noopener');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      window.open('https://nextcloud.mhservers.com', '_blank');
+      window.open('https://nextcloud.mhservers.com', '_blank', 'noopener');
     });
   </script>
 </body>
