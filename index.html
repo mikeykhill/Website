@@ -4,62 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MH Servers - Family Access</title>
+  
+  <!-- Force HTTPS upgrade -->
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    img-src 'self' https: data:;
+    script-src 'self';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    connect-src https://api.open-meteo.com;
+  ">
+
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
+      /* Colors for dark mode */
       --bg-dark: #121212;
-      --bg-dark-gradient: radial-gradient(ellipse at bottom, #121212 0%, #000000 100%);
-      --bg-light: #ffffff;
-      --bg-light-gradient: radial-gradient(ellipse at bottom, #f0f4f8 0%, #d7e1eb 100%);
       --text-dark: #eee;
-      --text-light: #222;
       --button-bg-dark: #1f1f1f;
-      --button-bg-light: #f5f7fa;
       --button-border-dark: #444;
-      --button-border-light: #bbb;
       --button-hover-bg-dark: #333;
-      --button-hover-bg-light: #e0e6f0;
       --button-hover-border-dark: #888;
-      --button-hover-border-light: #999;
       --tooltip-bg-dark: #222;
-      --tooltip-bg-light: #ddd;
       --tooltip-text-dark: #eee;
+
+      /* Colors for light mode */
+      --bg-light: #f0f4f8;
+      --text-light: #222;
+      --button-bg-light: #f5f7fa;
+      --button-border-light: #bbb;
+      --button-hover-bg-light: #e0e6f0;
+      --button-hover-border-light: #999;
+      --tooltip-bg-light: #ddd;
       --tooltip-text-light: #222;
-      --shadow-dark: rgba(0,0,0,0.4);
-      --shadow-light: rgba(0,0,0,0.15);
     }
 
-    /* Base styles */
     body {
       margin: 0;
-      background: var(--bg-dark-gradient);
-      background-image:
-        radial-gradient(circle 1px, #444 1px, transparent 1px),
-        radial-gradient(circle 1px, #444 1px, transparent 1px);
-      background-position: 0 0, 25px 25px;
-      background-size: 50px 50px;
-      font-family: 'Montserrat', sans-serif;
+      background-color: var(--bg-dark);
       color: var(--text-dark);
+      font-family: 'Montserrat', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px 20px;
+      padding: 30px 20px 60px;
+      transition: background-color 0.5s, color 0.5s;
       overflow-x: hidden;
-      transition: background 0.5s, color 0.5s, text-shadow 0.5s;
+      position: relative;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
     }
-
     body.light {
-      background: var(--bg-light-gradient);
-      background-image:
-        radial-gradient(circle 1px, #bbb 1px, transparent 1px),
-        radial-gradient(circle 1px, #bbb 1px, transparent 1px);
-      background-position: 0 0, 25px 25px;
-      background-size: 50px 50px;
+      background-color: var(--bg-light);
       color: var(--text-light);
-      text-shadow:
-        1px 1px 2px rgba(255,255,255,0.9);
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
 
     h1 {
@@ -67,9 +68,19 @@
       font-size: 2.5rem;
       margin-bottom: 5px;
       text-align: center;
-      animation: fadeInDown 1s ease forwards;
-      opacity: 0;
+      user-select: none;
     }
+
+    p#greeting {
+      font-weight: 600;
+      font-size: 1.3rem;
+      margin: 0 0 6px 0;
+      text-align: center;
+      color: #66ccff;
+      user-select: none;
+      text-shadow: 0 0 6px #3399ff;
+    }
+
     p#welcome {
       font-weight: 400;
       font-size: 1.2rem;
@@ -77,11 +88,7 @@
       margin-bottom: 30px;
       text-align: center;
       max-width: 600px;
-      color: inherit;
-      opacity: 0;
-      animation: fadeInDown 1.3s ease forwards;
-      /* text shadow for readability */
-      text-shadow: inherit;
+      user-select: none;
     }
 
     .button-container {
@@ -89,10 +96,9 @@
       gap: 30px;
       flex-wrap: wrap;
       justify-content: center;
-      opacity: 0;
-      animation: fadeInUp 1.6s ease forwards;
       width: 100%;
       max-width: 600px;
+      margin-bottom: 40px;
     }
 
     .service-button {
@@ -117,15 +123,14 @@
         box-shadow 0.3s,
         color 0.5s;
       position: relative;
-      box-shadow: 0 0 8px var(--shadow-dark);
-      text-shadow: inherit;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      user-select: none;
     }
     body.light .service-button {
       background-color: var(--button-bg-light);
       border-color: var(--button-border-light);
       color: var(--text-light);
-      box-shadow: 0 0 8px var(--shadow-light);
-      text-shadow: inherit;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
     }
     .service-button:hover {
       background-color: var(--button-hover-bg-dark);
@@ -171,7 +176,6 @@
       opacity: 0;
     }
 
-    /* Icons */
     .icon {
       width: 36px;
       height: 36px;
@@ -189,73 +193,6 @@
       fill: #6699cc;
     }
 
-    /* Footer */
-    footer {
-      margin-top: auto;
-      color: #555;
-      font-size: 0.9rem;
-      text-align: center;
-      padding: 15px 0 5px;
-      user-select: none;
-      transition: color 0.5s, text-shadow 0.5s;
-      text-shadow: 0 0 3px rgba(0,0,0,0.3);
-    }
-    body.light footer {
-      color: #777;
-      text-shadow:
-        1px 1px 2px rgba(255,255,255,0.7);
-    }
-
-    /* Animations */
-    @keyframes fadeInDown {
-      0% {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes fadeInUp {
-      0% {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 2rem;
-      }
-      p#welcome {
-        font-size: 1rem;
-        max-width: 90vw;
-      }
-      .service-button {
-        flex-basis: 100%;
-        max-width: 100%;
-        font-size: 1.2rem;
-        padding: 15px;
-        gap: 10px;
-      }
-      .icon {
-        width: 28px;
-        height: 28px;
-      }
-      #weather-clock {
-        flex-direction: column;
-        gap: 10px;
-        font-size: 1.1rem;
-      }
-    }
-
-    /* Weather and Clock container */
     #weather-clock {
       margin-bottom: 30px;
       display: flex;
@@ -265,59 +202,161 @@
       font-weight: 500;
       color: #99ccff;
       user-select: none;
-      opacity: 0;
-      animation: fadeInDown 2s ease forwards;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
+      z-index: 12;
+      position: relative;
+      justify-content: center;
     }
     body.light #weather-clock {
       color: #336699;
-      text-shadow:
-        1px 1px 2px rgba(255,255,255,0.9);
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
 
-    /* Toggle Button */
-    #toggle-theme {
+    #toggle-theme, #toggle-bg {
       position: fixed;
       top: 20px;
-      right: 20px;
-      background-color: var(--button-bg-dark);
-      border: 2px solid var(--button-border-dark);
-      color: var(--text-dark);
       padding: 8px 14px;
       font-size: 0.9rem;
       font-weight: 600;
       border-radius: 20px;
       cursor: pointer;
+      user-select: none;
       transition:
         background-color 0.3s,
         border-color 0.3s,
         color 0.3s;
-      user-select: none;
-      z-index: 20;
+      border: 2px solid var(--button-border-dark);
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+      z-index: 30;
       text-shadow: inherit;
     }
-    body.light #toggle-theme {
-      background-color: var(--button-bg-light);
+    #toggle-theme {
+      right: 20px;
+    }
+    #toggle-bg {
+      right: 130px;
+    }
+    body.light #toggle-theme,
+    body.light #toggle-bg {
       border-color: var(--button-border-light);
+      background-color: var(--button-bg-light);
       color: var(--text-light);
     }
-    #toggle-theme:hover {
+    #toggle-theme:hover,
+    #toggle-bg:hover {
       background-color: var(--button-hover-bg-dark);
       border-color: var(--button-hover-border-dark);
       color: #99ddff;
     }
-    body.light #toggle-theme:hover {
+    body.light #toggle-theme:hover,
+    body.light #toggle-bg:hover {
       background-color: var(--button-hover-bg-light);
       border-color: var(--button-hover-border-light);
       color: #336699;
     }
 
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+      p#greeting {
+        font-size: 1.1rem;
+      }
+      p#welcome {
+        font-size: 1rem;
+        max-width: 90vw;
+      }
+      .button-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+      .service-button {
+        max-width: 100%;
+        flex-basis: 100%;
+        font-size: 1.2rem;
+        padding: 15px;
+      }
+      #weather-clock {
+        gap: 20px;
+        font-size: 1.1rem;
+      }
+      #toggle-theme, #toggle-bg {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+        right: 15px;
+      }
+      #toggle-bg {
+        right: 100px;
+      }
+    }
+
+    /* Background Animations */
+    #bg-animation-1 {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    #bg-animation-2 {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .line {
+      position: absolute;
+      width: 2px;
+      opacity: 0.4;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    #bg-animation-3 {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.4;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes moveDot {
+      0% {transform: translateY(100vh);}
+      100% {transform: translateY(-10vh);}
+    }
+    @keyframes moveLine {
+      0% {transform: translateX(-10vw);}
+      100% {transform: translateX(110vw);}
+    }
+    @keyframes floatBubble {
+      0%, 100% {transform: translateY(0);}
+      50% {transform: translateY(-20px);}
+    }
   </style>
 </head>
 <body>
   <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
+  <button id="toggle-bg" aria-label="Toggle background animation">Background: Dots</button>
 
   <h1>Welcome to MH Servers</h1>
+  <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
@@ -326,14 +365,14 @@
   </div>
 
   <div class="button-container">
-    <button class="service-button" onclick="window.location.href='https://jellyfin.mhservers.com'" data-tooltip="Access photos, videos and more">
+    <button class="service-button" id="jellyfin-btn" data-tooltip="Access photos, videos and more">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M3 22v-20l18 10-18 10z"/>
       </svg>
       Jellyfin
     </button>
 
-    <button class="service-button" onclick="window.location.href='https://nextcloud.mhservers.com'" data-tooltip="Upload, share and access files">
+    <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M4 15v-6h16v6h-16zM4 5h16v2h-16zM4 19h16v2h-16z"/>
       </svg>
@@ -345,31 +384,127 @@
     &copy; 2025 Michael Hill &mdash; Last updated July 29
   </footer>
 
-  <script>
-    // Dark/light mode toggle with persistence
-    const toggleBtn = document.getElementById('toggle-theme');
-    const body = document.body;
+  <div id="bg-animation-1"></div>
+  <div id="bg-animation-2" style="display:none;"></div>
+  <div id="bg-animation-3" style="display:none;"></div>
 
-    // Initialize from localStorage
+  <script>
+    const body = document.body;
+    const toggleThemeBtn = document.getElementById('toggle-theme');
+    const toggleBgBtn = document.getElementById('toggle-bg');
+
+    // Initial theme load
     const savedTheme = localStorage.getItem('theme');
-    if(savedTheme === 'light') {
+    if (savedTheme === 'light') {
       body.classList.add('light');
-      toggleBtn.textContent = '🌞 Light Mode';
+      toggleThemeBtn.textContent = '🌞 Light Mode';
     } else {
-      toggleBtn.textContent = '🌙 Dark Mode';
+      toggleThemeBtn.textContent = '🌙 Dark Mode';
     }
 
-    toggleBtn.addEventListener('click', () => {
+    // Theme toggle handler
+    toggleThemeBtn.addEventListener('click', () => {
       if(body.classList.contains('light')) {
         body.classList.remove('light');
-        toggleBtn.textContent = '🌙 Dark Mode';
+        toggleThemeBtn.textContent = '🌙 Dark Mode';
         localStorage.setItem('theme', 'dark');
       } else {
         body.classList.add('light');
-        toggleBtn.textContent = '🌞 Light Mode';
+        toggleThemeBtn.textContent = '🌞 Light Mode';
         localStorage.setItem('theme', 'light');
       }
+      updateBgColors();
     });
+
+    // Background animations containers
+    const bgContainers = [
+      document.getElementById('bg-animation-1'),
+      document.getElementById('bg-animation-2'),
+      document.getElementById('bg-animation-3')
+    ];
+    let currentBgIndex = 0;
+
+    function updateBgButtonText() {
+      const names = ['Dots', 'Lines', 'Bubbles'];
+      toggleBgBtn.textContent = `Background: ${names[currentBgIndex]}`;
+    }
+
+    toggleBgBtn.addEventListener('click', () => {
+      bgContainers[currentBgIndex].style.display = 'none';
+      currentBgIndex = (currentBgIndex + 1) % bgContainers.length;
+      bgContainers[currentBgIndex].style.display = 'block';
+      updateBgButtonText();
+    });
+
+    updateBgButtonText();
+
+    function createDot(index, isLight) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      dot.style.width = dot.style.height = `${6 + Math.random()*6}px`;
+      dot.style.left = `${Math.random()*100}vw`;
+      dot.style.top = `${110 + Math.random()*20}vh`;
+      dot.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
+      dot.style.animationDuration = `${8 + Math.random()*8}s`;
+      dot.style.animationName = 'moveDot';
+      dot.style.animationDelay = `${Math.random()*8}s`;
+      return dot;
+    }
+    function createLine(index, isLight) {
+      const line = document.createElement('div');
+      line.classList.add('line');
+      line.style.height = `${20 + Math.random()*50}px`;
+      line.style.top = `${Math.random()*100}vh`;
+      line.style.left = `-${10 + Math.random()*20}vw`;
+      line.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
+      line.style.animationDuration = `${10 + Math.random()*10}s`;
+      line.style.animationName = 'moveLine';
+      line.style.animationDelay = `${Math.random()*10}s`;
+      return line;
+    }
+    function createBubble(index, isLight) {
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.style.width = bubble.style.height = `${15 + Math.random()*15}px`;
+      bubble.style.left = `${Math.random()*100}vw`;
+      bubble.style.top = `${40 + Math.random()*50}vh`;
+      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
+      bubble.style.animationDuration = `${6 + Math.random()*6}s`;
+      bubble.style.animationName = 'floatBubble';
+      bubble.style.animationDelay = `${Math.random()*6}s`;
+      return bubble;
+    }
+
+    function populateBackgrounds() {
+      bgContainers.forEach(c => c.innerHTML = '');
+      const isLight = body.classList.contains('light');
+
+      for(let i=0; i<30; i++) {
+        bgContainers[0].appendChild(createDot(i, isLight));
+      }
+      for(let i=0; i<20; i++) {
+        bgContainers[1].appendChild(createLine(i, isLight));
+      }
+      for(let i=0; i<25; i++) {
+        bgContainers[2].appendChild(createBubble(i, isLight));
+      }
+    }
+    populateBackgrounds();
+
+    function updateBgColors() {
+      const isLight = body.classList.contains('light');
+      bgContainers.forEach(container => {
+        for(const el of container.children) {
+          if(el.classList.contains('dot')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
+          } else if(el.classList.contains('line')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
+          } else if(el.classList.contains('bubble')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
+          }
+        }
+      });
+    }
 
     // Clock update
     function updateClock() {
@@ -381,8 +516,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Weather fetching using Open-Meteo (no API key needed)
-    // Temperature now in imperial (fahrenheit)
+    // Weather fetching using Open-Meteo (imperial)
     function fetchWeather(lat, lon) {
       const weatherDiv = document.getElementById('weather');
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
@@ -437,7 +571,6 @@
       return map[code] || 'Unknown';
     }
 
-    // Get user's location, then fetch weather
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
@@ -446,6 +579,36 @@
     } else {
       document.getElementById('weather').textContent = '⚠️ Geolocation not supported';
     }
+
+    // Greeting based on time
+    function updateGreeting() {
+      const greetingP = document.getElementById('greeting');
+      const hour = new Date().getHours();
+      let greetingText = "Hello!";
+      if(hour >= 5 && hour < 12) greetingText = "Good morning!";
+      else if(hour >= 12 && hour < 17) greetingText = "Good afternoon!";
+      else if(hour >= 17 && hour < 22) greetingText = "Good evening!";
+      else greetingText = "Good night!";
+      greetingP.textContent = greetingText;
+    }
+    updateGreeting();
+
+    // Button redirects with click sound (placeholder)
+    function playClickSound() {
+      // You can add sound here if desired later
+    }
+    document.getElementById('jellyfin-btn').addEventListener('click', () => {
+      playClickSound();
+      setTimeout(() => {
+        window.location.href = 'https://jellyfin.mhservers.com';
+      }, 150);
+    });
+    document.getElementById('nextcloud-btn').addEventListener('click', () => {
+      playClickSound();
+      setTimeout(() => {
+        window.location.href = 'https://nextcloud.mhservers.com';
+      }, 150);
+    });
   </script>
 </body>
 </html>
