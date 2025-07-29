@@ -342,7 +342,8 @@
 
     <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files" type="button" aria-describedby="tooltip-nextcloud">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4 15v-6h16v6h-16zM4 5h16v2h-16zM4 19h16v2h-16z"/>
+        <!-- Folder icon -->
+        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
       </svg>
       Nextcloud
     </button>
@@ -358,6 +359,7 @@
   <script>
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
+    const greetingEl = document.getElementById('greeting');
 
     // Load saved theme
     const savedTheme = localStorage.getItem('theme');
@@ -384,6 +386,13 @@
 
     const bgContainer = document.getElementById('bg-animation-3');
 
+    // Shades of the blue color for bubbles
+    const bubbleColors = [
+      'rgba(51, 153, 255, 0.2)',  // darker
+      'rgba(102, 204, 255, 0.2)', // original
+      'rgba(153, 229, 255, 0.2)'  // lighter
+    ];
+
     // Create bubble function with option for starting near top (for variety)
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
@@ -391,10 +400,25 @@
       const size = 15 + Math.random() * 15;
       bubble.style.width = bubble.style.height = size + 'px';
       bubble.style.left = (Math.random() * 100) + 'vw';
-      // To get some bubbles near top, random top between 0 and 90 vh
+      // Random top between 0 and 90 vh (some near top)
       bubble.style.top = (Math.random() * 90) + 'vh';
-      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
-      bubble.style.animationDuration = (6 + Math.random() * 6) + 's';
+
+      // Random color among the shades for light or dark theme
+      let colorIndex = Math.floor(Math.random() * bubbleColors.length);
+      let baseColor = bubbleColors[colorIndex];
+
+      // Adjust color opacity slightly for light mode
+      if (isLight) {
+        // Light mode colors: make them a bit brighter
+        if(colorIndex === 0) baseColor = 'rgba(80, 170, 255, 0.15)';
+        else if(colorIndex === 1) baseColor = 'rgba(140, 215, 255, 0.15)';
+        else baseColor = 'rgba(190, 240, 255, 0.15)';
+      }
+
+      bubble.style.backgroundColor = baseColor;
+
+      // Faster animation duration between 4 and 8 seconds (was 6-12)
+      bubble.style.animationDuration = (4 + Math.random() * 4) + 's';
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = (Math.random() * 6) + 's';
       return bubble;
@@ -415,9 +439,28 @@
     function updateBgColors() {
       const isLight = body.classList.contains('light');
       for(let el of bgContainer.children) {
-        el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
+        let colorIndex = Math.floor(Math.random() * bubbleColors.length);
+        let baseColor = bubbleColors[colorIndex];
+        if (isLight) {
+          if(colorIndex === 0) baseColor = 'rgba(80, 170, 255, 0.15)';
+          else if(colorIndex === 1) baseColor = 'rgba(140, 215, 255, 0.15)';
+          else baseColor = 'rgba(190, 240, 255, 0.15)';
+        }
+        el.style.backgroundColor = baseColor;
       }
     }
+
+    // Update greeting based on time of day
+    function updateGreeting() {
+      const now = new Date();
+      const hour = now.getHours();
+      let greeting = 'Hello!';
+      if (hour >= 5 && hour < 12) greeting = 'Good morning,';
+      else if (hour >= 12 && hour < 18) greeting = 'Good afternoon,';
+      else greeting = 'Good evening,';
+      greetingEl.textContent = greeting;
+    }
+    updateGreeting();
 
     // Clock update
     const clockEl = document.getElementById('clock');
@@ -427,59 +470,50 @@
     function updateTime() {
       const now = new Date();
       clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      updateGreeting();
     }
     setInterval(updateTime, 1000);
     updateTime();
 
     // Fetch location and weather data
-    async function fetchLocationAndWeather() {
-      try {
-        const locRes = await fetch('https://ipapi.co/json/');
-        const locData = await locRes.json();
-        const city = locData.city || 'Unknown city';
-        const region = locData.region || '';
-        const country = locData.country_name || '';
-        locationEl.textContent = `${city}${region ? ', ' + region : ''}${country ? ', ' + country : ''}`;
-
-        const lat = locData.latitude;
-        const lon = locData.longitude;
-        if(!lat || !lon) {
-          weatherEl.textContent = 'Weather location unavailable';
-          return;
-        }
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`);
-        const weatherData = await weatherRes.json();
-        if(weatherData && weatherData.current_weather) {
-          const tempF = weatherData.current_weather.temperature;
-          const conditionCode = weatherData.current_weather.weathercode;
-          let conditionText = 'Clear';
-          if(conditionCode >= 1 && conditionCode <= 3) conditionText = 'Partly Cloudy';
-          else if(conditionCode >= 45 && conditionCode <= 48) conditionText = 'Foggy';
-          else if(conditionCode >= 51 && conditionCode <= 57) conditionText = 'Drizzle';
-          else if(conditionCode >= 61 && conditionCode <= 67) conditionText = 'Rain';
-          else if(conditionCode >= 71 && conditionCode <= 77) conditionText = 'Snow';
-          else if(conditionCode >= 80 && conditionCode <= 82) conditionText = 'Rain Showers';
-          else if(conditionCode >= 95 && conditionCode <= 99) conditionText = 'Thunderstorm';
-
-          weatherEl.textContent = `${tempF}°F, ${conditionText}`;
-        } else {
-          weatherEl.textContent = 'Weather unavailable';
-        }
-      } catch (e) {
-        weatherEl.textContent = 'Weather fetch error';
-        locationEl.textContent = 'Location fetch error';
-        console.error('Fetch failed:', e);
+    async function fetchWeather() {
+      if (!navigator.geolocation) {
+        locationEl.textContent = 'Geolocation not supported';
+        weatherEl.textContent = '';
+        return;
       }
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        // Use Open-Meteo API, imperial units: temperature in F
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Network response not ok');
+          const data = await response.json();
+          const tempF = data.current_weather.temperature;
+          const wind = data.current_weather.windspeed;
+          locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+          weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph`;
+        } catch {
+          locationEl.textContent = 'Weather data unavailable';
+          weatherEl.textContent = '';
+        }
+      }, () => {
+        locationEl.textContent = 'Location permission denied';
+        weatherEl.textContent = '';
+      });
     }
-    fetchLocationAndWeather();
+    fetchWeather();
 
-    // Open links on service buttons
+    // Button click handlers
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
       window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
       window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
     });
+
   </script>
 </body>
 </html>
