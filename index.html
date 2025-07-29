@@ -8,16 +8,6 @@
   <!-- Force HTTPS upgrade -->
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
-  <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    img-src 'self' https: data:;
-    script-src 'self';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;
-    connect-src https://api.open-meteo.com;
-  ">
-
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -212,11 +202,9 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
 
-    /* Buttons */
-    #toggle-theme {
+    #toggle-bg, #toggle-theme {
       position: fixed;
       top: 20px;
-      right: 20px;
       padding: 8px 14px;
       font-size: 0.9rem;
       font-weight: 600;
@@ -233,44 +221,26 @@
       z-index: 30;
       text-shadow: inherit;
     }
-
     #toggle-bg {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      right: auto;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 20px;
-      cursor: pointer;
-      user-select: none;
-      transition:
-        background-color 0.3s,
-        border-color 0.3s,
-        color 0.3s;
-      border: 2px solid var(--button-border-dark);
-      background-color: var(--button-bg-dark);
-      color: var(--text-dark);
-      z-index: 30;
-      text-shadow: inherit;
+      left: 20px;  /* Changed to left side */
     }
-
-    body.light #toggle-theme,
-    body.light #toggle-bg {
+    #toggle-theme {
+      right: 20px;
+    }
+    body.light #toggle-bg,
+    body.light #toggle-theme {
       border-color: var(--button-border-light);
       background-color: var(--button-bg-light);
       color: var(--text-light);
     }
-
-    #toggle-theme:hover,
-    #toggle-bg:hover {
+    #toggle-bg:hover,
+    #toggle-theme:hover {
       background-color: var(--button-hover-bg-dark);
       border-color: var(--button-hover-border-dark);
       color: #99ddff;
     }
-    body.light #toggle-theme:hover,
-    body.light #toggle-bg:hover {
+    body.light #toggle-bg:hover,
+    body.light #toggle-theme:hover {
       background-color: var(--button-hover-bg-light);
       border-color: var(--button-hover-border-light);
       color: #336699;
@@ -301,50 +271,44 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-theme {
+      #toggle-bg, #toggle-theme {
         font-size: 0.85rem;
         padding: 6px 10px;
-        right: 15px;
       }
       #toggle-bg {
-        font-size: 0.85rem;
-        padding: 6px 10px;
         left: 15px;
-        right: auto;
+      }
+      #toggle-theme {
+        right: 15px;
       }
     }
 
     /* Background Animations */
-    #bg-animation-1,
-    #bg-animation-2,
-    #bg-animation-3 {
+    #bg-animation-1, #bg-animation-2, #bg-animation-3 {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
     }
-
     .dot {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.8;
+      opacity: 0.6;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
     }
-
     .line {
       position: absolute;
       width: 2px;
-      opacity: 0.7;
+      opacity: 0.4;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
     }
-
     .bubble {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.6;
+      opacity: 0.4;
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
     }
@@ -404,8 +368,24 @@
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const toggleBgBtn = document.getElementById('toggle-bg');
+    const jellyfinBtn = document.getElementById('jellyfin-btn');
+    const nextcloudBtn = document.getElementById('nextcloud-btn');
+    const clockEl = document.getElementById('clock');
+    const weatherEl = document.getElementById('weather');
 
-    // Initial theme load
+    // Replace these URLs with your actual service URLs
+    const jellyfinURL = 'https://jellyfin.mhservers.com';
+    const nextcloudURL = 'https://nextcloud.mhservers.com';
+
+    // Open services in new tab on click
+    jellyfinBtn.addEventListener('click', () => {
+      window.open(jellyfinURL, '_blank');
+    });
+    nextcloudBtn.addEventListener('click', () => {
+      window.open(nextcloudURL, '_blank');
+    });
+
+    // Load saved theme or default to dark
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
       body.classList.add('light');
@@ -414,7 +394,7 @@
       toggleThemeBtn.textContent = '🌙 Dark Mode';
     }
 
-    // Theme toggle handler
+    // Toggle dark/light theme
     toggleThemeBtn.addEventListener('click', () => {
       if(body.classList.contains('light')) {
         body.classList.remove('light');
@@ -428,7 +408,7 @@
       updateBgColors();
     });
 
-    // Background animations containers
+    // Background animation containers
     const bgContainers = [
       document.getElementById('bg-animation-1'),
       document.getElementById('bg-animation-2'),
@@ -503,7 +483,6 @@
     }
 
     function updateBgColors() {
-      // Remove and recreate background elements to update colors per theme
       populateBackgrounds();
     }
 
@@ -515,8 +494,7 @@
       c.style.display = i === currentBgIndex ? 'block' : 'none';
     });
 
-    // Clock and weather placeholders (you can add your own implementation)
-    const clockEl = document.getElementById('clock');
+    // Clock update
     function updateClock() {
       const now = new Date();
       clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
@@ -524,6 +502,73 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // WEATHER FETCHING CODE - using Open-Meteo API
+
+    function fetchWeather(lat, lon) {
+      // Open-Meteo current weather API (no key needed)
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if(data && data.current_weather) {
+            const weather = data.current_weather;
+            // Weather codes from https://open-meteo.com/en/docs
+            const codes = {
+              0: "Clear sky",
+              1: "Mainly clear",
+              2: "Partly cloudy",
+              3: "Overcast",
+              45: "Fog",
+              48: "Depositing rime fog",
+              51: "Light drizzle",
+              53: "Moderate drizzle",
+              55: "Dense drizzle",
+              56: "Light freezing drizzle",
+              57: "Dense freezing drizzle",
+              61: "Slight rain",
+              63: "Moderate rain",
+              65: "Heavy rain",
+              66: "Light freezing rain",
+              67: "Heavy freezing rain",
+              71: "Slight snow fall",
+              73: "Moderate snow fall",
+              75: "Heavy snow fall",
+              77: "Snow grains",
+              80: "Slight rain showers",
+              81: "Moderate rain showers",
+              82: "Violent rain showers",
+              85: "Slight snow showers",
+              86: "Heavy snow showers",
+              95: "Thunderstorm",
+              96: "Thunderstorm with slight hail",
+              99: "Thunderstorm with heavy hail"
+            };
+            const desc = codes[weather.weathercode] || "Unknown";
+            weatherEl.textContent = `${desc}, ${weather.temperature}°C, Wind ${weather.windspeed} km/h`;
+          } else {
+            weatherEl.textContent = 'Weather data not available';
+          }
+        })
+        .catch(() => {
+          weatherEl.textContent = 'Failed to load weather';
+        });
+    }
+
+    // Use browser geolocation to get coordinates for weather
+    if(navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          fetchWeather(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          weatherEl.textContent = 'Location access denied. Cannot load weather.';
+        },
+        {timeout: 10000}
+      );
+    } else {
+      weatherEl.textContent = 'Geolocation not supported.';
+    }
   </script>
 </body>
 </html>
