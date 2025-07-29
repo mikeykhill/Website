@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MH Servers - Family Access</title>
-  
+
   <!-- Force HTTPS upgrade -->
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-  
+
   <!-- Content Security Policy -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
@@ -212,28 +212,7 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
 
-    /* Adjusted button positions: 
-       toggle-bg top-left, toggle-theme top-right */
-    #toggle-bg {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 20px;
-      cursor: pointer;
-      user-select: none;
-      transition:
-        background-color 0.3s,
-        border-color 0.3s,
-        color 0.3s;
-      border: 2px solid var(--button-border-dark);
-      background-color: var(--button-bg-dark);
-      color: var(--text-dark);
-      z-index: 30;
-      text-shadow: inherit;
-    }
+    /* Buttons */
     #toggle-theme {
       position: fixed;
       top: 20px;
@@ -254,12 +233,36 @@
       z-index: 30;
       text-shadow: inherit;
     }
+
+    #toggle-bg {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: auto;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        color 0.3s;
+      border: 2px solid var(--button-border-dark);
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+      z-index: 30;
+      text-shadow: inherit;
+    }
+
     body.light #toggle-theme,
     body.light #toggle-bg {
       border-color: var(--button-border-light);
       background-color: var(--button-bg-light);
       color: var(--text-light);
     }
+
     #toggle-theme:hover,
     #toggle-bg:hover {
       background-color: var(--button-hover-bg-dark);
@@ -298,43 +301,22 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-theme, #toggle-bg {
+      #toggle-theme {
         font-size: 0.85rem;
         padding: 6px 10px;
+        right: 15px;
+      }
+      #toggle-bg {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+        left: 15px;
+        right: auto;
       }
     }
 
     /* Background Animations */
-    #bg-animation-1 {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .dot {
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.6;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-
-    #bg-animation-2 {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .line {
-      position: absolute;
-      width: 2px;
-      opacity: 0.4;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
-
+    #bg-animation-1,
+    #bg-animation-2,
     #bg-animation-3 {
       position: fixed;
       inset: 0;
@@ -342,10 +324,27 @@
       z-index: 0;
       overflow: hidden;
     }
+
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .line {
+      position: absolute;
+      width: 2px;
+      opacity: 0.7;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
     .bubble {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.4;
+      opacity: 0.6;
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
     }
@@ -457,8 +456,7 @@
       dot.style.width = dot.style.height = `${6 + Math.random()*6}px`;
       dot.style.left = `${Math.random()*100}vw`;
       dot.style.top = `${110 + Math.random()*20}vh`;
-      // Invert colors: if light, use darker dot; if dark, lighter dot:
-      dot.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.3)' : 'rgba(51, 153, 255, 0.3)';
+      dot.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.6)' : 'rgba(0, 180, 255, 0.7)';
       dot.style.animationDuration = `${8 + Math.random()*8}s`;
       dot.style.animationName = 'moveDot';
       dot.style.animationDelay = `${Math.random()*8}s`;
@@ -470,8 +468,7 @@
       line.style.height = `${20 + Math.random()*50}px`;
       line.style.top = `${Math.random()*100}vh`;
       line.style.left = `-${10 + Math.random()*20}vw`;
-      // Invert colors:
-      line.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.15)' : 'rgba(51, 153, 255, 0.15)';
+      line.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.4)' : 'rgba(0, 180, 255, 0.5)';
       line.style.animationDuration = `${10 + Math.random()*10}s`;
       line.style.animationName = 'moveLine';
       line.style.animationDelay = `${Math.random()*10}s`;
@@ -483,8 +480,7 @@
       bubble.style.width = bubble.style.height = `${15 + Math.random()*15}px`;
       bubble.style.left = `${Math.random()*100}vw`;
       bubble.style.top = `${40 + Math.random()*50}vh`;
-      // Invert colors:
-      bubble.style.backgroundColor = isLight ? 'rgba(102, 204, 255, 0.2)' : 'rgba(51, 153, 255, 0.2)';
+      bubble.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.35)' : 'rgba(0, 180, 255, 0.45)';
       bubble.style.animationDuration = `${6 + Math.random()*6}s`;
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = `${Math.random()*6}s`;
@@ -495,3 +491,39 @@
       bgContainers.forEach(c => c.innerHTML = '');
       const isLight = body.classList.contains('light');
 
+      for(let i=0; i<30; i++) {
+        bgContainers[0].appendChild(createDot(i, isLight));
+      }
+      for(let i=0; i<20; i++) {
+        bgContainers[1].appendChild(createLine(i, isLight));
+      }
+      for(let i=0; i<25; i++) {
+        bgContainers[2].appendChild(createBubble(i, isLight));
+      }
+    }
+
+    function updateBgColors() {
+      // Remove and recreate background elements to update colors per theme
+      populateBackgrounds();
+    }
+
+    // Initialize backgrounds
+    populateBackgrounds();
+
+    // Initially show only the current background
+    bgContainers.forEach((c, i) => {
+      c.style.display = i === currentBgIndex ? 'block' : 'none';
+    });
+
+    // Clock and weather placeholders (you can add your own implementation)
+    const clockEl = document.getElementById('clock');
+    function updateClock() {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+  </script>
+</body>
+</html>
