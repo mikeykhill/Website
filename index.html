@@ -9,23 +9,24 @@
     :root {
       --bg-dark: #121212;
       --bg-dark-gradient: radial-gradient(ellipse at bottom, #121212 0%, #000000 100%);
-      --bg-light: #f5f5f5;
+      --bg-light: #ffffff;
+      --bg-light-gradient: radial-gradient(ellipse at bottom, #f0f4f8 0%, #d7e1eb 100%);
       --text-dark: #eee;
       --text-light: #222;
       --button-bg-dark: #1f1f1f;
-      --button-bg-light: #ddd;
+      --button-bg-light: #f5f7fa;
       --button-border-dark: #444;
       --button-border-light: #bbb;
       --button-hover-bg-dark: #333;
-      --button-hover-bg-light: #ccc;
+      --button-hover-bg-light: #e0e6f0;
       --button-hover-border-dark: #888;
-      --button-hover-border-light: #888;
+      --button-hover-border-light: #999;
       --tooltip-bg-dark: #222;
       --tooltip-bg-light: #ddd;
       --tooltip-text-dark: #eee;
       --tooltip-text-light: #222;
       --shadow-dark: rgba(0,0,0,0.4);
-      --shadow-light: rgba(0,0,0,0.2);
+      --shadow-light: rgba(0,0,0,0.15);
     }
 
     /* Base styles */
@@ -45,17 +46,20 @@
       align-items: center;
       padding: 30px 20px;
       overflow-x: hidden;
-      transition: background 0.5s, color 0.5s;
+      transition: background 0.5s, color 0.5s, text-shadow 0.5s;
+      text-shadow: 0 0 5px rgba(0,0,0,0.7);
     }
 
     body.light {
-      background: var(--bg-light);
+      background: var(--bg-light-gradient);
       background-image:
         radial-gradient(circle 1px, #bbb 1px, transparent 1px),
         radial-gradient(circle 1px, #bbb 1px, transparent 1px);
       background-position: 0 0, 25px 25px;
       background-size: 50px 50px;
       color: var(--text-light);
+      text-shadow:
+        1px 1px 2px rgba(255,255,255,0.9);
     }
 
     h1 {
@@ -72,10 +76,12 @@
       margin-top: 0;
       margin-bottom: 30px;
       text-align: center;
-      max-width: 500px;
+      max-width: 600px;
       color: inherit;
       opacity: 0;
       animation: fadeInDown 1.3s ease forwards;
+      /* text shadow for readability */
+      text-shadow: inherit;
     }
 
     .button-container {
@@ -112,12 +118,14 @@
         color 0.5s;
       position: relative;
       box-shadow: 0 0 8px var(--shadow-dark);
+      text-shadow: inherit;
     }
     body.light .service-button {
       background-color: var(--button-bg-light);
       border-color: var(--button-border-light);
       color: var(--text-light);
       box-shadow: 0 0 8px var(--shadow-light);
+      text-shadow: inherit;
     }
     .service-button:hover {
       background-color: var(--button-hover-bg-dark);
@@ -152,6 +160,7 @@
       pointer-events: none;
       transition: opacity 0.3s;
       z-index: 10;
+      text-shadow: none;
     }
     body.light .service-button[data-tooltip]:hover::after {
       background: var(--tooltip-bg-light);
@@ -188,10 +197,13 @@
       text-align: center;
       padding: 15px 0 5px;
       user-select: none;
-      transition: color 0.5s;
+      transition: color 0.5s, text-shadow 0.5s;
+      text-shadow: 0 0 3px rgba(0,0,0,0.3);
     }
     body.light footer {
       color: #777;
+      text-shadow:
+        1px 1px 2px rgba(255,255,255,0.7);
     }
 
     /* Animations */
@@ -255,9 +267,12 @@
       user-select: none;
       opacity: 0;
       animation: fadeInDown 2s ease forwards;
+      text-shadow: 0 0 5px rgba(0,0,0,0.7);
     }
     body.light #weather-clock {
       color: #336699;
+      text-shadow:
+        1px 1px 2px rgba(255,255,255,0.9);
     }
 
     /* Toggle Button */
@@ -279,6 +294,7 @@
         color 0.3s;
       user-select: none;
       z-index: 20;
+      text-shadow: inherit;
     }
     body.light #toggle-theme {
       background-color: var(--button-bg-light);
@@ -302,7 +318,7 @@
   <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
 
   <h1>Welcome to MH Servers</h1>
-  <p id="welcome">Easily access your family’s Jellyfin media and Nextcloud files right here.</p>
+  <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
     <div id="clock" aria-label="Local time">Loading time...</div>
@@ -310,14 +326,14 @@
   </div>
 
   <div class="button-container">
-    <button class="service-button" onclick="window.location.href='https://jellyfin.mhservers.com'" data-tooltip="Watch movies, shows, and listen to music">
+    <button class="service-button" onclick="window.location.href='https://jellyfin.mhservers.com'" data-tooltip="Access photos, videos and more">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M3 22v-20l18 10-18 10z"/>
       </svg>
       Jellyfin
     </button>
 
-    <button class="service-button" onclick="window.location.href='https://nextcloud.mhservers.com'" data-tooltip="Upload, share, and manage family files">
+    <button class="service-button" onclick="window.location.href='https://nextcloud.mhservers.com'" data-tooltip="Upload, share and access files">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M4 15v-6h16v6h-16zM4 5h16v2h-16zM4 19h16v2h-16z"/>
       </svg>
@@ -366,19 +382,18 @@
     updateClock();
 
     // Weather fetching using Open-Meteo (no API key needed)
-    // Docs: https://open-meteo.com/en/docs
-
+    // Temperature now in imperial (fahrenheit)
     function fetchWeather(lat, lon) {
       const weatherDiv = document.getElementById('weather');
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
           if(data.current_weather) {
-            const c = data.current_weather.temperature.toFixed(1);
+            const f = data.current_weather.temperature.toFixed(1);
             const wcode = data.current_weather.weathercode;
             const weatherDesc = weatherCodeToDesc(wcode);
-            weatherDiv.textContent = `🌤️ Weather: ${weatherDesc}, ${c}°C`;
+            weatherDiv.textContent = `🌤️ Weather: ${weatherDesc}, ${f}°F`;
           } else {
             weatherDiv.textContent = '⚠️ Weather data unavailable';
           }
@@ -388,7 +403,6 @@
         });
     }
 
-    // Basic mapping of weather code to description
     function weatherCodeToDesc(code) {
       const map = {
         0: 'Clear sky',
