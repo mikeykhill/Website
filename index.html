@@ -224,9 +224,10 @@
     #toggle-theme {
       right: 20px;
     }
+    /* Moved toggle-bg button to top left */
     #toggle-bg {
-      left: 20px;    /* moved from right to left */
-      right: auto;   /* reset right */
+      left: 20px;
+      right: auto;
     }
     body.light #toggle-theme,
     body.light #toggle-bg {
@@ -273,15 +274,15 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-theme {
+      #toggle-theme, #toggle-bg {
         font-size: 0.85rem;
         padding: 6px 10px;
+      }
+      #toggle-theme {
         right: 15px;
       }
       #toggle-bg {
-        font-size: 0.85rem;
-        padding: 6px 10px;
-        left: 15px;    /* changed from right to left */
+        left: 15px;
         right: auto;
       }
     }
@@ -389,7 +390,6 @@
   <div id="bg-animation-3" style="display:none;"></div>
 
   <script>
-    // Your existing JavaScript unchanged
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const toggleBgBtn = document.getElementById('toggle-bg');
@@ -506,26 +506,76 @@
 
     // Update background colors on theme change
     function updateBgColors() {
-      populateBackgrounds();
+      const isLight = body.classList.contains('light');
+      bgContainers.forEach((container, idx) => {
+        for(let el of container.children) {
+          if(el.classList.contains('dot')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
+          } else if(el.classList.contains('line')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
+          } else if(el.classList.contains('bubble')) {
+            el.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
+          }
+        }
+      });
     }
 
-    // Clock & Weather (simple time)
-    function updateClock() {
+    // Weather and clock update
+    const clockEl = document.getElementById('clock');
+    const weatherEl = document.getElementById('weather');
+
+    function updateTime() {
       const now = new Date();
-      const hours = now.getHours().toString().padStart(2,'0');
-      const mins = now.getMinutes().toString().padStart(2,'0');
-      const secs = now.getSeconds().toString().padStart(2,'0');
-      document.getElementById('clock').textContent = `${hours}:${mins}:${secs}`;
+      clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(updateTime, 1000);
+    updateTime();
 
-    // Button link handlers (open in new tab)
+    // Fetch weather via IP location (free API)
+    async function fetchWeather() {
+      try {
+        // Get location by IP
+        const locRes = await fetch('https://ipapi.co/json/');
+        const locData = await locRes.json();
+        const lat = locData.latitude;
+        const lon = locData.longitude;
+        if(!lat || !lon) {
+          weatherEl.textContent = 'Weather location unavailable';
+          return;
+        }
+        // Use Open-Meteo free API (no key)
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const weatherData = await weatherRes.json();
+        if(weatherData && weatherData.current_weather) {
+          const tempC = weatherData.current_weather.temperature;
+          const conditionCode = weatherData.current_weather.weathercode;
+          let conditionText = 'Clear';
+          // Simple weather code interpretation
+          if(conditionCode >= 1 && conditionCode <= 3) conditionText = 'Partly Cloudy';
+          else if(conditionCode >= 45 && conditionCode <= 48) conditionText = 'Foggy';
+          else if(conditionCode >= 51 && conditionCode <= 57) conditionText = 'Drizzle';
+          else if(conditionCode >= 61 && conditionCode <= 67) conditionText = 'Rain';
+          else if(conditionCode >= 71 && conditionCode <= 77) conditionText = 'Snow';
+          else if(conditionCode >= 80 && conditionCode <= 82) conditionText = 'Rain Showers';
+          else if(conditionCode >= 95 && conditionCode <= 99) conditionText = 'Thunderstorm';
+
+          weatherEl.textContent = `${tempC}°C, ${conditionText}`;
+        } else {
+          weatherEl.textContent = 'Weather unavailable';
+        }
+      } catch (e) {
+        weatherEl.textContent = 'Weather fetch error';
+        console.error('Weather fetch failed:', e);
+      }
+    }
+    fetchWeather();
+
+    // Buttons open links
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      window.open('https://your.jellyfin.url', '_blank', 'noopener');
+      window.open('https://jellyfin.example.com', '_blank');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      window.open('https://your.nextcloud.url', '_blank', 'noopener');
+      window.open('https://nextcloud.example.com', '_blank');
     });
   </script>
 </body>
