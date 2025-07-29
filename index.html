@@ -1,50 +1,437 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MH Servers</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MH Servers - Family Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg-dark: #121212;
+      --bg-dark-gradient: radial-gradient(ellipse at bottom, #121212 0%, #000000 100%);
+      --bg-light: #f5f5f5;
+      --text-dark: #eee;
+      --text-light: #222;
+      --button-bg-dark: #1f1f1f;
+      --button-bg-light: #ddd;
+      --button-border-dark: #444;
+      --button-border-light: #bbb;
+      --button-hover-bg-dark: #333;
+      --button-hover-bg-light: #ccc;
+      --button-hover-border-dark: #888;
+      --button-hover-border-light: #888;
+      --tooltip-bg-dark: #222;
+      --tooltip-bg-light: #ddd;
+      --tooltip-text-dark: #eee;
+      --tooltip-text-light: #222;
+      --shadow-dark: rgba(0,0,0,0.4);
+      --shadow-light: rgba(0,0,0,0.2);
+    }
+
+    /* Base styles */
     body {
-      background-color: #121212;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
+      background: var(--bg-dark-gradient);
+      background-image:
+        radial-gradient(circle 1px, #444 1px, transparent 1px),
+        radial-gradient(circle 1px, #444 1px, transparent 1px);
+      background-position: 0 0, 25px 25px;
+      background-size: 50px 50px;
+      font-family: 'Montserrat', sans-serif;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      overflow-x: hidden;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.light {
+      background: var(--bg-light);
+      background-image:
+        radial-gradient(circle 1px, #bbb 1px, transparent 1px),
+        radial-gradient(circle 1px, #bbb 1px, transparent 1px);
+      background-position: 0 0, 25px 25px;
+      background-size: 50px 50px;
+      color: var(--text-light);
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 2.5rem;
+      margin-bottom: 5px;
+      text-align: center;
+      animation: fadeInDown 1s ease forwards;
+      opacity: 0;
+    }
+    p#welcome {
+      font-weight: 400;
+      font-size: 1.2rem;
+      margin-top: 0;
+      margin-bottom: 30px;
+      text-align: center;
+      max-width: 500px;
+      color: inherit;
+      opacity: 0;
+      animation: fadeInDown 1.3s ease forwards;
     }
 
     .button-container {
       display: flex;
-      gap: 20px;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeInUp 1.6s ease forwards;
+      width: 100%;
+      max-width: 600px;
     }
 
     .service-button {
-      background-color: #1f1f1f;
-      color: #ffffff;
-      border: 2px solid #444;
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: 400;
-      border-radius: 8px;
+      background-color: var(--button-bg-dark);
+      border: 2px solid var(--button-border-dark);
+      border-radius: 12px;
+      color: var(--text-dark);
       cursor: pointer;
-      transition: background-color 0.3s, border-color 0.3s, transform 0.2s, font-weight 0.2s;
+      flex: 1 1 250px;
+      max-width: 280px;
+      padding: 20px;
+      font-size: 1.3rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        transform 0.2s,
+        font-weight 0.2s,
+        box-shadow 0.3s,
+        color 0.5s;
+      position: relative;
+      box-shadow: 0 0 8px var(--shadow-dark);
+    }
+    body.light .service-button {
+      background-color: var(--button-bg-light);
+      border-color: var(--button-border-light);
+      color: var(--text-light);
+      box-shadow: 0 0 8px var(--shadow-light);
+    }
+    .service-button:hover {
+      background-color: var(--button-hover-bg-dark);
+      border-color: var(--button-hover-border-dark);
+      font-weight: 700;
+      transform: scale(1.05);
+      box-shadow: 0 0 16px #66ccffaa;
+      color: #99ddff;
+    }
+    body.light .service-button:hover {
+      background-color: var(--button-hover-bg-light);
+      border-color: var(--button-hover-border-light);
+      box-shadow: 0 0 12px #3399ffcc;
+      color: #336699;
     }
 
-    .service-button:hover {
-      background-color: #333;
-      border-color: #666;
-      transform: scale(1.05);
-      font-weight: 700;
+    /* Tooltip styling */
+    .service-button[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--tooltip-bg-dark);
+      color: var(--tooltip-text-dark);
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      box-shadow: 0 0 10px rgba(0,0,0,0.7);
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 10;
     }
+    body.light .service-button[data-tooltip]:hover::after {
+      background: var(--tooltip-bg-light);
+      color: var(--tooltip-text-light);
+      box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    }
+    .service-button[data-tooltip]::after {
+      opacity: 0;
+    }
+
+    /* Icons */
+    .icon {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      fill: #66ccff;
+      transition: fill 0.3s;
+    }
+    .service-button:hover .icon {
+      fill: #99ddff;
+    }
+    body.light .icon {
+      fill: #336699;
+    }
+    body.light .service-button:hover .icon {
+      fill: #6699cc;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: auto;
+      color: #555;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 15px 0 5px;
+      user-select: none;
+      transition: color 0.5s;
+    }
+    body.light footer {
+      color: #777;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+      p#welcome {
+        font-size: 1rem;
+        max-width: 90vw;
+      }
+      .service-button {
+        flex-basis: 100%;
+        max-width: 100%;
+        font-size: 1.2rem;
+        padding: 15px;
+        gap: 10px;
+      }
+      .icon {
+        width: 28px;
+        height: 28px;
+      }
+      #weather-clock {
+        flex-direction: column;
+        gap: 10px;
+        font-size: 1.1rem;
+      }
+    }
+
+    /* Weather and Clock container */
+    #weather-clock {
+      margin-bottom: 30px;
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #99ccff;
+      user-select: none;
+      opacity: 0;
+      animation: fadeInDown 2s ease forwards;
+    }
+    body.light #weather-clock {
+      color: #336699;
+    }
+
+    /* Toggle Button */
+    #toggle-theme {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--button-bg-dark);
+      border: 2px solid var(--button-border-dark);
+      color: var(--text-dark);
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        color 0.3s;
+      user-select: none;
+      z-index: 20;
+    }
+    body.light #toggle-theme {
+      background-color: var(--button-bg-light);
+      border-color: var(--button-border-light);
+      color: var(--text-light);
+    }
+    #toggle-theme:hover {
+      background-color: var(--button-hover-bg-dark);
+      border-color: var(--button-hover-border-dark);
+      color: #99ddff;
+    }
+    body.light #toggle-theme:hover {
+      background-color: var(--button-hover-bg-light);
+      border-color: var(--button-hover-border-light);
+      color: #336699;
+    }
+
   </style>
 </head>
 <body>
-  <div class="button-container">
-    <button class="service-button" onclick="window.location.href='https://jellyfin.mhservers.com'">Jellyfin</button>
-    <button class="service-button" onclick="window.location.href='https://nextcloud.mhservers.com'">Nextcloud</button>
+  <button id="toggle-theme" aria-label="Toggle dark/light mode">🌙 Dark Mode</button>
+
+  <h1>Welcome to MH Servers</h1>
+  <p id="welcome">Easily access your family’s Jellyfin media and Nextcloud files right here.</p>
+
+  <div id="weather-clock" aria-live="polite" aria-atomic="true">
+    <div id="clock" aria-label="Local time">Loading time...</div>
+    <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
+
+  <div class="button-container">
+    <button class="service-button" onclick="window.location.href='https://jellyfin.mhservers.com'" data-tooltip="Watch movies, shows, and listen to music">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 22v-20l18 10-18 10z"/>
+      </svg>
+      Jellyfin
+    </button>
+
+    <button class="service-button" onclick="window.location.href='https://nextcloud.mhservers.com'" data-tooltip="Upload, share, and manage family files">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 15v-6h16v6h-16zM4 5h16v2h-16zM4 19h16v2h-16z"/>
+      </svg>
+      Nextcloud
+    </button>
+  </div>
+
+  <footer>
+    &copy; 2025 Michael Hill &mdash; Last updated July 29
+  </footer>
+
+  <script>
+    // Dark/light mode toggle with persistence
+    const toggleBtn = document.getElementById('toggle-theme');
+    const body = document.body;
+
+    // Initialize from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if(savedTheme === 'light') {
+      body.classList.add('light');
+      toggleBtn.textContent = '🌞 Light Mode';
+    } else {
+      toggleBtn.textContent = '🌙 Dark Mode';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if(body.classList.contains('light')) {
+        body.classList.remove('light');
+        toggleBtn.textContent = '🌙 Dark Mode';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        body.classList.add('light');
+        toggleBtn.textContent = '🌞 Light Mode';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Clock update
+    function updateClock() {
+      const now = new Date();
+      const options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+      const timeString = now.toLocaleTimeString(undefined, options);
+      document.getElementById('clock').textContent = `🕒 Local Time: ${timeString}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Weather fetching using Open-Meteo (no API key needed)
+    // Docs: https://open-meteo.com/en/docs
+
+    function fetchWeather(lat, lon) {
+      const weatherDiv = document.getElementById('weather');
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if(data.current_weather) {
+            const c = data.current_weather.temperature.toFixed(1);
+            const wcode = data.current_weather.weathercode;
+            const weatherDesc = weatherCodeToDesc(wcode);
+            weatherDiv.textContent = `🌤️ Weather: ${weatherDesc}, ${c}°C`;
+          } else {
+            weatherDiv.textContent = '⚠️ Weather data unavailable';
+          }
+        })
+        .catch(() => {
+          weatherDiv.textContent = '⚠️ Failed to load weather';
+        });
+    }
+
+    // Basic mapping of weather code to description
+    function weatherCodeToDesc(code) {
+      const map = {
+        0: 'Clear sky',
+        1: 'Mainly clear',
+        2: 'Partly cloudy',
+        3: 'Overcast',
+        45: 'Fog',
+        48: 'Depositing rime fog',
+        51: 'Light drizzle',
+        53: 'Moderate drizzle',
+        55: 'Dense drizzle',
+        56: 'Light freezing drizzle',
+        57: 'Dense freezing drizzle',
+        61: 'Slight rain',
+        63: 'Moderate rain',
+        65: 'Heavy rain',
+        66: 'Light freezing rain',
+        67: 'Heavy freezing rain',
+        71: 'Slight snow fall',
+        73: 'Moderate snow fall',
+        75: 'Heavy snow fall',
+        77: 'Snow grains',
+        80: 'Slight rain showers',
+        81: 'Moderate rain showers',
+        82: 'Violent rain showers',
+        85: 'Slight snow showers',
+        86: 'Heavy snow showers',
+        95: 'Thunderstorm',
+        96: 'Thunderstorm with slight hail',
+        99: 'Thunderstorm with heavy hail'
+      };
+      return map[code] || 'Unknown';
+    }
+
+    // Get user's location, then fetch weather
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        () => document.getElementById('weather').textContent = '⚠️ Location permission denied'
+      );
+    } else {
+      document.getElementById('weather').textContent = '⚠️ Geolocation not supported';
+    }
+  </script>
 </body>
 </html>
