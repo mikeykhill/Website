@@ -2,47 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MH Servers - Family Access</title>
-
-  <!-- Force HTTPS and security headers -->
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    img-src 'self' https: data:;
-    script-src 'self';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;
-    connect-src https://api.open-meteo.com;
-  ">
-
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hill Family Portal</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Background Animation Container -->
-  <div id="background-animation" class="animation-1 light"></div>
-
-  <!-- Background Toggle Button (Top Left) -->
-  <button class="bg-toggle" onclick="toggleBackground()">🌌</button>
-
-  <!-- Dark/Light Mode Toggle Button (Top Right) -->
-  <button class="mode-toggle" onclick="toggleDarkMode()">🌓</button>
-
-  <div class="container">
-    <h1>Welcome to MH Servers</h1>
-    <p class="subtitle">Easily access the Hill family's private services</p>
-
-    <div class="button-container">
-      <a href="https://jellyfin.mhservers.com" class="service-button" title="Access photos, videos, and more">Jellyfin</a>
-      <a href="https://nextcloud.mhservers.com" class="service-button" title="Upload, share, and access files">Nextcloud</a>
+  <header>
+    <h1>Welcome to Hill Family Portal</h1>
+    <p class="subtext">Easily access the Hill family's private services</p>
+    <div class="top-controls">
+      <button id="theme-toggle">🌓</button>
+      <button id="bg-toggle">🎨</button>
     </div>
+  </header>
 
+  <main>
+    <div class="button-container">
+      <a href="https://jellyfin.mhservers.com" class="app-button" title="Access photos, videos, and more">Jellyfin</a>
+      <a href="https://nextcloud.mhservers.com" class="app-button" title="Upload, share, and access files">Nextcloud</a>
+    </div>
     <div class="widgets">
       <div id="clock"></div>
       <div id="weather"></div>
     </div>
-  </div>
+  </main>
+
+  <canvas id="bg-canvas"></canvas>
 
   <script src="script.js"></script>
 </body>
