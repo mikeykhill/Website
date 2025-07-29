@@ -4,9 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MH Servers - Family Access</title>
-
+  
   <!-- Force HTTPS upgrade -->
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    img-src 'self' https: data:;
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    connect-src https://api.open-meteo.com;
+  ">
 
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
@@ -202,9 +209,10 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
     }
 
-    #toggle-bg, #toggle-theme {
+    #toggle-bg {
       position: fixed;
       top: 20px;
+      left: 20px;
       padding: 8px 14px;
       font-size: 0.9rem;
       font-weight: 600;
@@ -221,25 +229,52 @@
       z-index: 30;
       text-shadow: inherit;
     }
-    #toggle-bg {
-      left: 20px;  /* Changed to left side */
+    body.light #toggle-bg {
+      border-color: var(--button-border-light);
+      background-color: var(--button-bg-light);
+      color: var(--text-light);
     }
+    #toggle-bg:hover {
+      background-color: var(--button-hover-bg-dark);
+      border-color: var(--button-hover-border-dark);
+      color: #99ddff;
+    }
+    body.light #toggle-bg:hover {
+      background-color: var(--button-hover-bg-light);
+      border-color: var(--button-hover-border-light);
+      color: #336699;
+    }
+
     #toggle-theme {
+      position: fixed;
+      top: 20px;
       right: 20px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition:
+        background-color 0.3s,
+        border-color 0.3s,
+        color 0.3s;
+      border: 2px solid var(--button-border-dark);
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+      z-index: 30;
+      text-shadow: inherit;
     }
-    body.light #toggle-bg,
     body.light #toggle-theme {
       border-color: var(--button-border-light);
       background-color: var(--button-bg-light);
       color: var(--text-light);
     }
-    #toggle-bg:hover,
     #toggle-theme:hover {
       background-color: var(--button-hover-bg-dark);
       border-color: var(--button-hover-border-dark);
       color: #99ddff;
     }
-    body.light #toggle-bg:hover,
     body.light #toggle-theme:hover {
       background-color: var(--button-hover-bg-light);
       border-color: var(--button-hover-border-light);
@@ -271,20 +306,14 @@
         gap: 20px;
         font-size: 1.1rem;
       }
-      #toggle-bg, #toggle-theme {
+      #toggle-theme, #toggle-bg {
         font-size: 0.85rem;
         padding: 6px 10px;
-      }
-      #toggle-bg {
-        left: 15px;
-      }
-      #toggle-theme {
-        right: 15px;
       }
     }
 
     /* Background Animations */
-    #bg-animation-1, #bg-animation-2, #bg-animation-3 {
+    #bg-animation-1 {
       position: fixed;
       inset: 0;
       pointer-events: none;
@@ -298,12 +327,28 @@
       animation-timing-function: linear;
       animation-iteration-count: infinite;
     }
+
+    #bg-animation-2 {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
     .line {
       position: absolute;
       width: 2px;
       opacity: 0.4;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
+    }
+
+    #bg-animation-3 {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
     }
     .bubble {
       position: absolute;
@@ -368,24 +413,8 @@
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const toggleBgBtn = document.getElementById('toggle-bg');
-    const jellyfinBtn = document.getElementById('jellyfin-btn');
-    const nextcloudBtn = document.getElementById('nextcloud-btn');
-    const clockEl = document.getElementById('clock');
-    const weatherEl = document.getElementById('weather');
 
-    // Replace these URLs with your actual service URLs
-    const jellyfinURL = 'https://jellyfin.mhservers.com';
-    const nextcloudURL = 'https://nextcloud.mhservers.com';
-
-    // Open services in new tab on click
-    jellyfinBtn.addEventListener('click', () => {
-      window.open(jellyfinURL, '_blank');
-    });
-    nextcloudBtn.addEventListener('click', () => {
-      window.open(nextcloudURL, '_blank');
-    });
-
-    // Load saved theme or default to dark
+    // Initial theme load
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
       body.classList.add('light');
@@ -394,7 +423,7 @@
       toggleThemeBtn.textContent = '🌙 Dark Mode';
     }
 
-    // Toggle dark/light theme
+    // Theme toggle handler
     toggleThemeBtn.addEventListener('click', () => {
       if(body.classList.contains('light')) {
         body.classList.remove('light');
@@ -408,7 +437,7 @@
       updateBgColors();
     });
 
-    // Background animation containers
+    // Background animations containers
     const bgContainers = [
       document.getElementById('bg-animation-1'),
       document.getElementById('bg-animation-2'),
@@ -436,7 +465,7 @@
       dot.style.width = dot.style.height = `${6 + Math.random()*6}px`;
       dot.style.left = `${Math.random()*100}vw`;
       dot.style.top = `${110 + Math.random()*20}vh`;
-      dot.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.6)' : 'rgba(0, 180, 255, 0.7)';
+      dot.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.3)' : 'rgba(102, 204, 255, 0.3)';
       dot.style.animationDuration = `${8 + Math.random()*8}s`;
       dot.style.animationName = 'moveDot';
       dot.style.animationDelay = `${Math.random()*8}s`;
@@ -448,7 +477,7 @@
       line.style.height = `${20 + Math.random()*50}px`;
       line.style.top = `${Math.random()*100}vh`;
       line.style.left = `-${10 + Math.random()*20}vw`;
-      line.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.4)' : 'rgba(0, 180, 255, 0.5)';
+      line.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.15)' : 'rgba(102, 204, 255, 0.15)';
       line.style.animationDuration = `${10 + Math.random()*10}s`;
       line.style.animationName = 'moveLine';
       line.style.animationDelay = `${Math.random()*10}s`;
@@ -460,7 +489,7 @@
       bubble.style.width = bubble.style.height = `${15 + Math.random()*15}px`;
       bubble.style.left = `${Math.random()*100}vw`;
       bubble.style.top = `${40 + Math.random()*50}vh`;
-      bubble.style.backgroundColor = isLight ? 'rgba(0, 123, 255, 0.35)' : 'rgba(0, 180, 255, 0.45)';
+      bubble.style.backgroundColor = isLight ? 'rgba(51, 153, 255, 0.2)' : 'rgba(102, 204, 255, 0.2)';
       bubble.style.animationDuration = `${6 + Math.random()*6}s`;
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = `${Math.random()*6}s`;
@@ -477,98 +506,90 @@
       for(let i=0; i<20; i++) {
         bgContainers[1].appendChild(createLine(i, isLight));
       }
-      for(let i=0; i<25; i++) {
+      for(let i=0; i<20; i++) {
         bgContainers[2].appendChild(createBubble(i, isLight));
       }
     }
 
-    function updateBgColors() {
-      populateBackgrounds();
-    }
-
-    // Initialize backgrounds
     populateBackgrounds();
 
-    // Initially show only the current background
-    bgContainers.forEach((c, i) => {
-      c.style.display = i === currentBgIndex ? 'block' : 'none';
-    });
+    function updateBgColors() {
+      const isLight = body.classList.contains('light');
+      populateBackgrounds();
 
-    // Clock update
+      // Update buttons colors for theme
+      if(isLight) {
+        toggleBgBtn.style.borderColor = 'var(--button-border-light)';
+        toggleBgBtn.style.backgroundColor = 'var(--button-bg-light)';
+        toggleBgBtn.style.color = 'var(--text-light)';
+
+        toggleThemeBtn.style.borderColor = 'var(--button-border-light)';
+        toggleThemeBtn.style.backgroundColor = 'var(--button-bg-light)';
+        toggleThemeBtn.style.color = 'var(--text-light)';
+      } else {
+        toggleBgBtn.style.borderColor = 'var(--button-border-dark)';
+        toggleBgBtn.style.backgroundColor = 'var(--button-bg-dark)';
+        toggleBgBtn.style.color = 'var(--text-dark)';
+
+        toggleThemeBtn.style.borderColor = 'var(--button-border-dark)';
+        toggleThemeBtn.style.backgroundColor = 'var(--button-bg-dark)';
+        toggleThemeBtn.style.color = 'var(--text-dark)';
+      }
+    }
+
+    // Weather and clock code
+    const clockEl = document.getElementById('clock');
+    const weatherEl = document.getElementById('weather');
+
     function updateClock() {
       const now = new Date();
-      clockEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      clockEl.textContent = timeString;
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
-    // WEATHER FETCHING CODE - using Open-Meteo API
+    async function fetchWeather(lat, lon) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Weather fetch failed');
+        const data = await response.json();
+        const weather = data.current_weather;
+        const tempC = weather.temperature;
+        const tempF = (tempC * 9/5 + 32).toFixed(1);
+        const windSpeed = weather.windspeed;
+        weatherEl.textContent = `${tempF}°F, Wind: ${windSpeed} km/h`;
+      } catch (err) {
+        weatherEl.textContent = 'Weather unavailable';
+      }
+    }
 
-    function fetchWeather(lat, lon) {
-      // Open-Meteo current weather API (no key needed)
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          if(data && data.current_weather) {
-            const weather = data.current_weather;
-            // Weather codes from https://open-meteo.com/en/docs
-            const codes = {
-              0: "Clear sky",
-              1: "Mainly clear",
-              2: "Partly cloudy",
-              3: "Overcast",
-              45: "Fog",
-              48: "Depositing rime fog",
-              51: "Light drizzle",
-              53: "Moderate drizzle",
-              55: "Dense drizzle",
-              56: "Light freezing drizzle",
-              57: "Dense freezing drizzle",
-              61: "Slight rain",
-              63: "Moderate rain",
-              65: "Heavy rain",
-              66: "Light freezing rain",
-              67: "Heavy freezing rain",
-              71: "Slight snow fall",
-              73: "Moderate snow fall",
-              75: "Heavy snow fall",
-              77: "Snow grains",
-              80: "Slight rain showers",
-              81: "Moderate rain showers",
-              82: "Violent rain showers",
-              85: "Slight snow showers",
-              86: "Heavy snow showers",
-              95: "Thunderstorm",
-              96: "Thunderstorm with slight hail",
-              99: "Thunderstorm with heavy hail"
-            };
-            const desc = codes[weather.weathercode] || "Unknown";
-            weatherEl.textContent = `${desc}, ${weather.temperature}°C, Wind ${weather.windspeed} km/h`;
-          } else {
-            weatherEl.textContent = 'Weather data not available';
+    function update() {
+      updateClock();
+      // Geolocation and fetch weather once
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            fetchWeather(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {
+            weatherEl.textContent = 'Weather permission denied';
           }
-        })
-        .catch(() => {
-          weatherEl.textContent = 'Failed to load weather';
-        });
+        );
+      } else {
+        weatherEl.textContent = 'Geolocation not supported';
+      }
     }
 
-    // Use browser geolocation to get coordinates for weather
-    if(navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          fetchWeather(pos.coords.latitude, pos.coords.longitude);
-        },
-        err => {
-          weatherEl.textContent = 'Location access denied. Cannot load weather.';
-        },
-        {timeout: 10000}
-      );
-    } else {
-      weatherEl.textContent = 'Geolocation not supported.';
-    }
+    update();
+    setInterval(updateClock, 60000);
+
+    // Buttons click handlers
+    document.getElementById('jellyfin-btn').addEventListener('click', () => {
+      window.open('https://jellyfin.mhservers.com', '_blank');
+    });
+    document.getElementById('nextcloud-btn').addEventListener('click', () => {
+      window.open('https://nextcloud.mhservers.com', '_blank');
+    });
   </script>
 </body>
 </html>
