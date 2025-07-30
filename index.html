@@ -399,7 +399,7 @@ body.light .small-btn:hover {
    <!-- Background animation container -->
   <div id="bg-animation-3"></div>
 
-  <script>
+<script>
     const body = document.body;
     const toggleThemeBtn = document.getElementById('toggle-theme');
     const greetingEl = document.getElementById('greeting');
@@ -409,9 +409,8 @@ body.light .small-btn:hover {
     const weatherEl = document.getElementById('weather');
     const bgContainer = document.getElementById('bg-animation-3');
 
-    const bubbleData = []; // Track bubble elements and positions for repel effect
+    const bubbleData = [];
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
       body.classList.add('light');
@@ -420,7 +419,6 @@ body.light .small-btn:hover {
       toggleThemeBtn.textContent = '🌙 Dark Mode';
     }
 
-    // Toggle theme on button click
     toggleThemeBtn.addEventListener('click', () => {
       const goingToLight = !body.classList.contains('light');
       if (goingToLight) {
@@ -435,14 +433,12 @@ body.light .small-btn:hover {
       updateBgColors(goingToLight);
     });
 
-    // Shades of the blue color for bubbles - brighter, slight variation
     const bubbleColors = [
-      'rgba(102, 217, 255, 0.3)',  
-      'rgba(128, 229, 255, 0.3)', 
-      'rgba(170, 245, 255, 0.3)'  
+      'rgba(102, 217, 255, 0.3)',
+      'rgba(128, 229, 255, 0.3)',
+      'rgba(170, 245, 255, 0.3)'
     ];
 
-    // Create bubble function
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
@@ -455,8 +451,8 @@ body.light .small-btn:hover {
       let baseColor = bubbleColors[colorIndex];
 
       if (isLight) {
-        if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
-        else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
+        if (colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
+        else if (colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
         else baseColor = 'rgba(100, 200, 230, 0.4)';
       }
 
@@ -465,7 +461,6 @@ body.light .small-btn:hover {
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = (Math.random() * 6) + 's';
 
-      // Track bubble original position and offset for repel
       bubbleData.push({
         el: bubble,
         offsetX: 0,
@@ -481,34 +476,31 @@ body.light .small-btn:hover {
       return bubble;
     }
 
-    // Populate bubbles
     function populateBubbles() {
       bgContainer.innerHTML = '';
       bubbleData.length = 0;
       const isLight = body.classList.contains('light');
       const bubbleCount = 75;
-      for(let i = 0; i < bubbleCount; i++) {
+      for (let i = 0; i < bubbleCount; i++) {
         bgContainer.appendChild(createBubble(i, isLight));
       }
     }
     populateBubbles();
 
-    // Update bubble colors on theme change
     function updateBgColors(forceLight = null) {
       const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
-      for(let el of bgContainer.children) {
+      for (let el of bgContainer.children) {
         let colorIndex = Math.floor(Math.random() * bubbleColors.length);
         let baseColor = bubbleColors[colorIndex];
         if (isLight) {
-          if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
-          else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
+          if (colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
+          else if (colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
           else baseColor = 'rgba(100, 200, 230, 0.4)';
         }
         el.style.backgroundColor = baseColor;
       }
     }
 
-    // Update greeting based on time of day
     function updateGreeting() {
       const now = new Date();
       const hour = now.getHours();
@@ -520,10 +512,9 @@ body.light .small-btn:hover {
     }
     updateGreeting();
 
-    // Update clock
     function updateClock() {
       const now = new Date();
-      const options = {hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: true};
+      const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
       clockEl.textContent = now.toLocaleTimeString([], options);
     }
     updateClock();
@@ -532,7 +523,6 @@ body.light .small-btn:hover {
       updateGreeting();
     }, 1000);
 
-    // Fetch weather
     async function fetchWeather() {
       if (!navigator.geolocation) {
         cityStateEl.textContent = 'Geolocation not supported';
@@ -551,19 +541,19 @@ body.light .small-btn:hover {
           let city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
           let state = geoData.address.state || geoData.address.county || '';
           cityStateEl.textContent = city && state ? `${city}, ${state}` : 'Unknown Location';
-        }catch {
+        } catch {
           cityStateEl.textContent = 'Location unavailable';
         }
 
         try {
-          const weatherUrl = https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit;
+          const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
           const weatherResp = await fetch(weatherUrl);
           if (!weatherResp.ok) throw new Error('Weather fetch failed');
           const weatherData = await weatherResp.json();
           const tempF = weatherData.current_weather.temperature;
           const wind = weatherData.current_weather.windspeed;
-          locationEl.textContent = Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)};
-          weatherEl.textContent = Temp: ${tempF}°F, Wind: ${wind} mph;
+          locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+          weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph`;
         } catch {
           locationEl.textContent = 'Weather data unavailable';
           weatherEl.textContent = '';
@@ -576,7 +566,6 @@ body.light .small-btn:hover {
     }
     fetchWeather();
 
-    // Buttons
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
       window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
     });
@@ -584,7 +573,6 @@ body.light .small-btn:hover {
       window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
     });
 
-    // Mouse repel logic (added here to avoid needing a second <script>)
     const repelDistance = 100;
     const maxOffset = 40;
 
@@ -607,7 +595,7 @@ body.light .small-btn:hover {
       bubbleData.forEach(bubble => {
         bubble.offsetX *= 0.9;
         bubble.offsetY *= 0.9;
-        bubble.el.style.transform = translate(${bubble.offsetX}px, ${bubble.offsetY}px);
+        bubble.el.style.transform = `translate(${bubble.offsetX}px, ${bubble.offsetY}px)`;
       });
       requestAnimationFrame(animateBubbles);
     }
