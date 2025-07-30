@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MH Servers - Family Access</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       /* Colors for dark mode */
@@ -38,7 +39,7 @@
     body {
       background-color: var(--bg-dark);
       color: var(--text-dark);
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -322,6 +323,38 @@
       animation-iteration-count: infinite;
     }
 
+    .sub-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.small-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  color: inherit;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+body.light .small-btn {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.small-btn:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+body.light .small-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+
     /* Animations keyframes */
     @keyframes floatBubble {
       0%, 100% {transform: translateY(0);}
@@ -354,6 +387,10 @@
       </svg>     
       Jellyfin
     </button>
+    <div class="sub-buttons">
+  <a href="https://play.google.com/store/apps/details?id=org.jellyfin.mobile" target="_blank" class="small-btn">📱 Android</a>
+  <a href="https://apps.apple.com/us/app/jellyfin-mobile/id1480192618" target="_blank" class="small-btn">🍎 iOS</a>
+</div>
 
     <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files" type="button" aria-describedby="tooltip-nextcloud">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -363,9 +400,14 @@
       Nextcloud
     </button>
   </div>
+<div class="sub-buttons">
+  <a href="https://play.google.com/store/apps/details?id=com.nextcloud.client" target="_blank" class="small-btn">📱 Android</a>
+  <a href="https://apps.apple.com/us/app/nextcloud/id1125420102" target="_blank" class="small-btn">🍎 iOS</a>
+</div>
+  
 
   <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
-    &copy; 2025 Michael Hill &mdash; Last updated July 29
+    &copy; 2025 Michael Hill &mdash; Last updated July 30
   </footer>
 
   <!-- Background animation container -->
