@@ -565,56 +565,56 @@ function updateBgColors(forceLight = null) {
         const lon = pos.coords.longitude;
 
         // Fetch city and state via OpenStreetMap Nominatim API
-        try {
-          const geoResp = await fetch(https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon});
-          if (!geoResp.ok) throw new Error('Geo location fetch failed');
-          const geoData = await geoResp.json();
+       try {
+  const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+  if (!geoResp.ok) throw new Error('Geo location fetch failed');
+  const geoData = await geoResp.json();
 
-          // Extract city and state or fallback
-          let city = '';
-          let state = '';
-          if (geoData.address) {
-            city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
-            state = geoData.address.state || geoData.address.county || '';
-          }
-          if (city && state) {
-            cityStateEl.textContent = ${city}, ${state};
-          } else {
-            cityStateEl.textContent = 'Unknown Location';
-          }
-        } catch {
-          cityStateEl.textContent = 'Location unavailable';
-        }
+  // Extract city and state or fallback
+  let city = '';
+  let state = '';
+  if (geoData.address) {
+    city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
+    state = geoData.address.state || geoData.address.county || '';
+  }
+  if (city && state) {
+    cityStateEl.textContent = `${city}, ${state}`;
+  } else {
+    cityStateEl.textContent = 'Unknown Location';
+  }
+} catch {
+  cityStateEl.textContent = 'Location unavailable';
+}
 
-        // Fetch weather from Open-Meteo API in imperial units (F)
-        try {
-          const weatherUrl = https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit;
-          const weatherResp = await fetch(weatherUrl);
-          if (!weatherResp.ok) throw new Error('Weather fetch failed');
-          const weatherData = await weatherResp.json();
-          const tempF = weatherData.current_weather.temperature;
-          const wind = weatherData.current_weather.windspeed;
-          locationEl.textContent = Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)};
-          weatherEl.textContent = Temp: ${tempF}°F, Wind: ${wind} mph;
-        } catch {
-          locationEl.textContent = 'Weather data unavailable';
-          weatherEl.textContent = '';
-        }
-      }, () => {
-        cityStateEl.textContent = 'Location permission denied';
-        locationEl.textContent = '';
-        weatherEl.textContent = '';
-      });
-    }
-    fetchWeather();
+// Fetch weather from Open-Meteo API in imperial units (F)
+try {
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+  const weatherResp = await fetch(weatherUrl);
+  if (!weatherResp.ok) throw new Error('Weather fetch failed');
+  const weatherData = await weatherResp.json();
+  const tempF = weatherData.current_weather.temperature;
+  const wind = weatherData.current_weather.windspeed;
+  locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+  weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph`;
+} catch {
+  locationEl.textContent = 'Weather data unavailable';
+  weatherEl.textContent = '';
+}
+}, () => {
+  cityStateEl.textContent = 'Location permission denied';
+  locationEl.textContent = '';
+  weatherEl.textContent = '';
+});
+}
+fetchWeather();
 
-    // Button click handlers
-    document.getElementById('jellyfin-btn').addEventListener('click', () => {
-      window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
-    });
-    document.getElementById('nextcloud-btn').addEventListener('click', () => {
-      window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
-    });
-  </script>
+// Button click handlers
+document.getElementById('jellyfin-btn').addEventListener('click', () => {
+  window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
+});
+document.getElementById('nextcloud-btn').addEventListener('click', () => {
+  window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
+});
+</script>
 </body>
 </html>
