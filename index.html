@@ -391,7 +391,7 @@
     }
 
     // Toggle theme on button click
-    toggleThemeBtn.addEventListener('click', () => {
+     toggleThemeBtn.addEventListener('click', () => {
       if(body.classList.contains('light')) {
         body.classList.remove('light');
         toggleThemeBtn.textContent = '🌙 Dark Mode';
@@ -401,7 +401,8 @@
         toggleThemeBtn.textContent = '🌞 Light Mode';
         localStorage.setItem('theme', 'light');
       }
-      updateBgColors();
+      // Delay color update to let the theme class apply
+      setTimeout(updateBgColors, 0);
     });
 
     // Shades of the blue color for bubbles - brighter, slight variation
