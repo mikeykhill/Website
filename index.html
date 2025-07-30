@@ -585,23 +585,17 @@ body.light .small-btn:hover {
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const bubbles = document.querySelectorAll('.bubble');
-    const influenceRadius = 100; // pixels
-    const maxDisplacement = 40; // max px the bubble will be pushed
-
-    // Store original positions
-    bubbles.forEach(bubble => {
-      const rect = bubble.getBoundingClientRect();
-      bubble.dataset.originalX = rect.left + window.scrollX;
-      bubble.dataset.originalY = rect.top + window.scrollY;
-    });
+    const influenceRadius = 100;
+    const maxDisplacement = 40;
 
     document.addEventListener('mousemove', e => {
-      const mouseX = e.clientX + window.scrollX;
-      const mouseY = e.clientY + window.scrollY;
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
 
       bubbles.forEach(bubble => {
-        const bx = parseFloat(bubble.dataset.originalX);
-        const by = parseFloat(bubble.dataset.originalY);
+        const rect = bubble.getBoundingClientRect();
+        const bx = rect.left + rect.width / 2;
+        const by = rect.top + rect.height / 2;
 
         const dx = mouseX - bx;
         const dy = mouseY - by;
@@ -613,15 +607,17 @@ body.light .small-btn:hover {
           const offsetX = -Math.cos(angle) * pushStrength;
           const offsetY = -Math.sin(angle) * pushStrength;
 
+          // Apply transform without disrupting animation
           bubble.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         } else {
-          // Smoothly return to original position
-          bubble.style.transform = `translate(0, 0)`;
+          // Reset to normal
+          bubble.style.transform = '';
         }
       });
     });
   });
 </script>
+
 
 </body>
 </html>
