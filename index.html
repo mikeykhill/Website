@@ -392,18 +392,18 @@
 
     // Toggle theme on button click
      toggleThemeBtn.addEventListener('click', () => {
-      if(body.classList.contains('light')) {
-        body.classList.remove('light');
-        toggleThemeBtn.textContent = '🌙 Dark Mode';
-        localStorage.setItem('theme', 'dark');
-      } else {
-        body.classList.add('light');
-        toggleThemeBtn.textContent = '🌞 Light Mode';
-        localStorage.setItem('theme', 'light');
-      }
-      // Delay color update to let the theme class apply
-      setTimeout(updateBgColors, 0);
-    });
+       const goingToLight = !body.classList.contains('light');
+       if (goingToLight) {
+         body.classList.add('light');
+         toggleThemeBtn.textContent = '🌞 Light Mode';
+         localStorage.setItem('theme', 'light');
+       } else {
+         body.classList.remove('light');
+         toggleThemeBtn.textContent = '🌙 Dark Mode';
+         localStorage.setItem('theme', 'dark');
+       }
+       updateBgColors(goingToLight);
+     });
 
     // Shades of the blue color for bubbles - brighter, slight variation
     const bubbleColors = [
@@ -455,19 +455,19 @@
     populateBubbles();
 
     // Update bubble colors on theme change
-    function updateBgColors() {
-      const isLight = body.classList.contains('light');
-      for(let el of bgContainer.children) {
-        let colorIndex = Math.floor(Math.random() * bubbleColors.length);
-        let baseColor = bubbleColors[colorIndex];
-        if (isLight) {
-          if(colorIndex === 0) baseColor = 'rgba(140, 240, 255, 0.25)';
-          else if(colorIndex === 1) baseColor = 'rgba(180, 255, 255, 0.25)';
-          else baseColor = 'rgba(210, 255, 255, 0.25)';
-        }
-        el.style.backgroundColor = baseColor;
-      }
-    }
+     function updateBgColors(forceLight = null) {
+       const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
+       for(let el of bgContainer.children) {
+         let colorIndex = Math.floor(Math.random() * bubbleColors.length);
+         let baseColor = bubbleColors[colorIndex];
+         if (isLight) {
+           if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
+           else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
+           else baseColor = 'rgba(100, 200, 230, 0.4)';
+         }
+         el.style.backgroundColor = baseColor;
+       }
+     }
 
     // Update greeting based on time of day
     function updateGreeting() {
