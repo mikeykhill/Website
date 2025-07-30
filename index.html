@@ -359,31 +359,12 @@ body.light .small-btn:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-    .sub-buttons {
+   .sub-buttons {
   display: flex;
   justify-content: center;
   gap: 8px;
   margin-top: 8px;
-
-  /* Start hidden and slightly down */
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-
-  /* Transition for smooth fade and slide */
-  transition: opacity 0.3s ease, transform 0.3s ease;
 }
-
-/* When hovering the entire service group, show sub-buttons */
-.service-group:hover .sub-buttons {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-
-    
-
 
 
     /* Animations keyframes */
@@ -410,7 +391,6 @@ body.light .small-btn:hover {
     <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
 
-<!-- Service Buttons -->
 <div class="button-container">
 
   <!-- Jellyfin Group -->
@@ -442,6 +422,7 @@ body.light .small-btn:hover {
   </div>
 
 </div>
+
 
 
   
