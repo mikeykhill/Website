@@ -395,7 +395,7 @@ body.light .small-btn:hover {
     &copy; 2025 Michael Hill &mdash; Last updated July 30
   </footer>
 
-  <!-- Background animation container -->
+   <!-- Background animation container -->
   <div id="bg-animation-3"></div>
 
   <script>
@@ -408,6 +408,8 @@ body.light .small-btn:hover {
     const weatherEl = document.getElementById('weather');
     const bgContainer = document.getElementById('bg-animation-3');
 
+    const bubbleData = []; // Track bubble elements and positions for repel effect
+
     // Load saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -418,61 +420,70 @@ body.light .small-btn:hover {
     }
 
     // Toggle theme on button click
-     toggleThemeBtn.addEventListener('click', () => {
-       const goingToLight = !body.classList.contains('light');
-       if (goingToLight) {
-         body.classList.add('light');
-         toggleThemeBtn.textContent = '🌞 Light Mode';
-         localStorage.setItem('theme', 'light');
-       } else {
-         body.classList.remove('light');
-         toggleThemeBtn.textContent = '🌙 Dark Mode';
-         localStorage.setItem('theme', 'dark');
-       }
-       updateBgColors(goingToLight);
-     });
+    toggleThemeBtn.addEventListener('click', () => {
+      const goingToLight = !body.classList.contains('light');
+      if (goingToLight) {
+        body.classList.add('light');
+        toggleThemeBtn.textContent = '🌞 Light Mode';
+        localStorage.setItem('theme', 'light');
+      } else {
+        body.classList.remove('light');
+        toggleThemeBtn.textContent = '🌙 Dark Mode';
+        localStorage.setItem('theme', 'dark');
+      }
+      updateBgColors(goingToLight);
+    });
 
     // Shades of the blue color for bubbles - brighter, slight variation
     const bubbleColors = [
-      'rgba(102, 217, 255, 0.3)',  // brighter darker shade
-      'rgba(128, 229, 255, 0.3)', // brighter original
-      'rgba(170, 245, 255, 0.3)'  // brighter lighter shade
+      'rgba(102, 217, 255, 0.3)',  
+      'rgba(128, 229, 255, 0.3)', 
+      'rgba(170, 245, 255, 0.3)'  
     ];
 
-    // Create bubble function with option for starting near top (for variety)
+    // Create bubble function
     function createBubble(index, isLight) {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
       const size = 15 + Math.random() * 15;
       bubble.style.width = bubble.style.height = size + 'px';
       bubble.style.left = (Math.random() * 100) + 'vw';
-      // Random top between 0 and 90 vh (some near top)
       bubble.style.top = (Math.random() * 90) + 'vh';
 
-      // Random color among the shades for light or dark theme
       let colorIndex = Math.floor(Math.random() * bubbleColors.length);
       let baseColor = bubbleColors[colorIndex];
 
-      // Adjust color opacity slightly for light mode
       if (isLight) {
-        // Light mode colors: make them a bit brighter still
         if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
         else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
         else baseColor = 'rgba(100, 200, 230, 0.4)';
-    }
+      }
 
       bubble.style.backgroundColor = baseColor;
-
-      // Faster animation duration between 4 and 8 seconds (was 6-12)
       bubble.style.animationDuration = (4 + Math.random() * 4) + 's';
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDelay = (Math.random() * 6) + 's';
+
+      // Track bubble original position and offset for repel
+      bubbleData.push({
+        el: bubble,
+        offsetX: 0,
+        offsetY: 0,
+        get originX() {
+          return bubble.offsetLeft + bubble.offsetWidth / 2;
+        },
+        get originY() {
+          return bubble.offsetTop + bubble.offsetHeight / 2;
+        }
+      });
+
       return bubble;
     }
 
     // Populate bubbles
     function populateBubbles() {
       bgContainer.innerHTML = '';
+      bubbleData.length = 0;
       const isLight = body.classList.contains('light');
       const bubbleCount = 75;
       for(let i = 0; i < bubbleCount; i++) {
@@ -482,19 +493,19 @@ body.light .small-btn:hover {
     populateBubbles();
 
     // Update bubble colors on theme change
-     function updateBgColors(forceLight = null) {
-       const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
-       for(let el of bgContainer.children) {
-         let colorIndex = Math.floor(Math.random() * bubbleColors.length);
-         let baseColor = bubbleColors[colorIndex];
-         if (isLight) {
-           if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
-           else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
-           else baseColor = 'rgba(100, 200, 230, 0.4)';
-         }
-         el.style.backgroundColor = baseColor;
-       }
-     }
+    function updateBgColors(forceLight = null) {
+      const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
+      for(let el of bgContainer.children) {
+        let colorIndex = Math.floor(Math.random() * bubbleColors.length);
+        let baseColor = bubbleColors[colorIndex];
+        if (isLight) {
+          if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
+          else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
+          else baseColor = 'rgba(100, 200, 230, 0.4)';
+        }
+        el.style.backgroundColor = baseColor;
+      }
+    }
 
     // Update greeting based on time of day
     function updateGreeting() {
@@ -508,7 +519,7 @@ body.light .small-btn:hover {
     }
     updateGreeting();
 
-    // Update clock every second with seconds shown
+    // Update clock
     function updateClock() {
       const now = new Date();
       const options = {hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: true};
@@ -520,7 +531,7 @@ body.light .small-btn:hover {
       updateGreeting();
     }, 1000);
 
-    // Fetch weather data using Open-Meteo API, imperial units
+    // Fetch weather
     async function fetchWeather() {
       if (!navigator.geolocation) {
         cityStateEl.textContent = 'Geolocation not supported';
@@ -532,29 +543,17 @@ body.light .small-btn:hover {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
 
-        // Fetch city and state via OpenStreetMap Nominatim API
         try {
           const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
           if (!geoResp.ok) throw new Error('Geo location fetch failed');
           const geoData = await geoResp.json();
-
-          // Extract city and state or fallback
-          let city = '';
-          let state = '';
-          if (geoData.address) {
-            city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
-            state = geoData.address.state || geoData.address.county || '';
-          }
-          if (city && state) {
-            cityStateEl.textContent = `${city}, ${state}`;
-          } else {
-            cityStateEl.textContent = 'Unknown Location';
-          }
+          let city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
+          let state = geoData.address.state || geoData.address.county || '';
+          cityStateEl.textContent = city && state ? `${city}, ${state}` : 'Unknown Location';
         } catch {
           cityStateEl.textContent = 'Location unavailable';
         }
 
-        // Fetch weather from Open-Meteo API in imperial units (F)
         try {
           const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
           const weatherResp = await fetch(weatherUrl);
@@ -576,91 +575,44 @@ body.light .small-btn:hover {
     }
     fetchWeather();
 
-    // Button click handlers
+    // Buttons
     document.getElementById('jellyfin-btn').addEventListener('click', () => {
       window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
     });
     document.getElementById('nextcloud-btn').addEventListener('click', () => {
       window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
     });
-  </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const bubbleData = [];
+    // Mouse repel logic (added here to avoid needing a second <script>)
+    const repelDistance = 100;
+    const maxOffset = 40;
 
-  // Helper to update bubble data dynamically
-  function refreshBubbleData() {
-    bubbleData.length = 0; // clear existing
-    const bubbles = document.querySelectorAll(".bubble");
-    bubbles.forEach((bubble) => {
-      const rect = bubble.getBoundingClientRect();
-      bubbleData.push({
-        el: bubble,
-        originX: rect.left + rect.width / 2,
-        originY: rect.top + rect.height / 2,
-        offsetX: 0,
-        offsetY: 0
-      });
-    });
-  }
-
-  refreshBubbleData();
-  window.addEventListener("resize", refreshBubbleData);
-
-  const repelDistance = 100;
-  const maxOffset = 40;
-  let mouseX = null;
-  let mouseY = null;
-
-  // Track latest mouse position
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  // Reset on mouse leave
-  document.addEventListener("mouseleave", () => {
-    mouseX = null;
-    mouseY = null;
-  });
-
-  // Animate bubbles
-  function animate() {
-    bubbleData.forEach((bubble) => {
-      if (mouseX !== null && mouseY !== null) {
-        const dx = mouseX - bubble.originX;
-        const dy = mouseY - bubble.originY;
+    document.addEventListener("mousemove", (e) => {
+      bubbleData.forEach(bubble => {
+        const dx = e.clientX - bubble.originX;
+        const dy = e.clientY - bubble.originY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < repelDistance) {
           const angle = Math.atan2(dy, dx);
           const repelStrength = (repelDistance - dist) / repelDistance;
-          bubble.offsetX += (-Math.cos(angle) * repelStrength * maxOffset - bubble.offsetX) * 0.2;
-          bubble.offsetY += (-Math.sin(angle) * repelStrength * maxOffset - bubble.offsetY) * 0.2;
-        } else {
-          // Ease back to origin
-          bubble.offsetX *= 0.9;
-          bubble.offsetY *= 0.9;
+          bubble.offsetX = -Math.cos(angle) * repelStrength * maxOffset;
+          bubble.offsetY = -Math.sin(angle) * repelStrength * maxOffset;
         }
-      } else {
-        // Ease back to origin when mouse leaves
-        bubble.offsetX *= 0.9;
-        bubble.offsetY *= 0.9;
-      }
-
-      bubble.el.style.transform = `translate(${bubble.offsetX}px, ${bubble.offsetY}px)`;
+      });
     });
 
-    requestAnimationFrame(animate);
-  }
+    function animateBubbles() {
+      bubbleData.forEach(bubble => {
+        bubble.offsetX *= 0.9;
+        bubble.offsetY *= 0.9;
+        bubble.el.style.transform = `translate(${bubble.offsetX}px, ${bubble.offsetY}px)`;
+      });
+      requestAnimationFrame(animateBubbles);
+    }
+    animateBubbles();
+  </script>
 
-  animate();
-});
-</script>
-
-
-
-
+  
 </body>
 </html>
