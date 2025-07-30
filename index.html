@@ -142,30 +142,24 @@
     }
 
     /* Tooltip styling */
-    .service-button[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 110%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--tooltip-bg-dark);
-      color: var(--tooltip-text-dark);
-      padding: 6px 10px;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      white-space: nowrap;
-      box-shadow: 0 0 10px rgba(0,0,0,0.7);
-      opacity: 1;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 11;
-      text-shadow: none;
-    }
-    body.light .service-button[data-tooltip]:hover::after {
-      background: var(--tooltip-bg-light);
-      color: var(--tooltip-text-light);
-      box-shadow: 0 0 8px rgba(0,0,0,0.15);
-    }
+.service-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 240px;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+body.light .service-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
     .service-button[data-tooltip]::after {
       opacity: 0;
     }
@@ -178,9 +172,10 @@
       fill: #66ccff;
       transition: fill 0.3s;
     }
-    .service-button:hover .icon {
-      fill: #99ddff;
-    }
+    .service-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.03);
+}
     body.light .icon {
       fill: #336699;
     }
@@ -379,7 +374,7 @@ body.light .small-btn:hover {
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
 
   <!-- Header & Greeting -->
-  <h1>Welcome to MH Servers</h1>
+  <h1>Welcome to MH Servers!</h1>
   <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud files right here.</p>
 
