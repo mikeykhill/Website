@@ -324,19 +324,24 @@ body.light .small-btn:hover {
 }
 
 .bubble {
-  transition: transform 0.1s ease-out;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
   will-change: transform;
+  transition: background-color 0.3s;
+  /* REMOVE transition: transform 0.1s ease-out; */
 }
 
 
 
 
 
-    /* Animations keyframes */
+
+    /* Animations keyframes 
     @keyframes floatBubble {
       0%, 100% {transform: translateY(0);}
       50% {transform: translateY(-20px);}
-    }
+    } */
   </style>
 </head>
 <body>
