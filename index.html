@@ -353,6 +353,12 @@ body.light .small-btn {
 body.light .small-btn:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
+    .service-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 
 
     /* Animations keyframes */
@@ -379,31 +385,39 @@ body.light .small-btn:hover {
     <div id="weather" aria-label="Local weather">Loading weather...</div>
   </div>
 
-  <!-- Service Buttons -->
-  <div class="button-container">
+<!-- Service Buttons -->
+<div class="button-container">
+
+  <!-- Jellyfin Group -->
+  <div class="service-group">
     <button class="service-button" id="jellyfin-btn" data-tooltip="Access photos, videos and more" type="button" aria-describedby="tooltip-jellyfin">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <path fill="#66ccff" d="M32 2C20 2 8 10 8 26c0 4 1 8 3 12l2 4h38l2-4c2-4 3-8 3-12C56 10 44 2 32 2zm0 4c10.5 0 20 6.5 20 20 0 3.3-0.8 6.6-2.6 10H14.6C12.8 32.6 12 29.3 12 26c0-13.5 9.5-20 20-20zm-4 40v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm12 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm-24 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2z"/>
-      </svg>     
+      </svg>
       Jellyfin
     </button>
     <div class="sub-buttons">
-  <a href="https://play.google.com/store/apps/details?id=org.jellyfin.mobile" target="_blank" class="small-btn">📱 Android</a>
-  <a href="https://apps.apple.com/us/app/jellyfin-mobile/id1480192618" target="_blank" class="small-btn">🍎 iOS</a>
-</div>
+      <a href="https://play.google.com/store/apps/details?id=org.jellyfin.mobile" target="_blank" class="small-btn">📱 Android</a>
+      <a href="https://apps.apple.com/us/app/jellyfin-mobile/id1480192618" target="_blank" class="small-btn">🍎 iOS</a>
+    </div>
+  </div>
 
+  <!-- Nextcloud Group -->
+  <div class="service-group">
     <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files" type="button" aria-describedby="tooltip-nextcloud">
       <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <!-- Folder icon -->
         <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
       </svg>
       Nextcloud
     </button>
+    <div class="sub-buttons">
+      <a href="https://play.google.com/store/apps/details?id=com.nextcloud.client" target="_blank" class="small-btn">📱 Android</a>
+      <a href="https://apps.apple.com/us/app/nextcloud/id1125420102" target="_blank" class="small-btn">🍎 iOS</a>
+    </div>
   </div>
-<div class="sub-buttons">
-  <a href="https://play.google.com/store/apps/details?id=com.nextcloud.client" target="_blank" class="small-btn">📱 Android</a>
-  <a href="https://apps.apple.com/us/app/nextcloud/id1125420102" target="_blank" class="small-btn">🍎 iOS</a>
+
 </div>
+
   
 
   <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
