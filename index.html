@@ -551,7 +551,7 @@ body.light .small-btn:hover {
           let city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
           let state = geoData.address.state || geoData.address.county || '';
           cityStateEl.textContent = city && state ? ${city}, ${state} : 'Unknown Location';
-        } catch {
+         catch {
           cityStateEl.textContent = 'Location unavailable';
         }
 
