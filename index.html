@@ -95,74 +95,35 @@
     }
 
     .service-button {
-      background-color: var(--button-bg-dark);
-      border: 2px solid var(--button-border-dark);
-      border-radius: 12px;
-      color: var(--text-dark);
-      cursor: pointer;
-      flex: 1 1 250px;
-      max-width: 280px;
-      padding: 20px;
-      font-size: 1.3rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      transition:
-        background-color 0.3s,
-        border-color 0.3s,
-        transform 0.2s,
-        font-weight 0.2s,
-        box-shadow 0.3s,
-        color 0.5s;
-      position: relative;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
-      user-select: none;
-      z-index: 10; /* Ensure buttons are above bubbles */
-    }
-    body.light .service-button {
-      background-color: var(--button-bg-light);
-      border-color: var(--button-border-light);
-      color: var(--text-light);
-      box-shadow: 0 0 8px rgba(0,0,0,0.2);
-    }
-    .service-button:hover {
-      background-color: var(--button-hover-bg-dark);
-      border-color: var(--button-hover-border-dark);
-      font-weight: 700;
-      transform: scale(1.05);
-      box-shadow: 0 0 16px #66ccffaa;
-      color: #99ddff;
-    }
-    body.light .service-button:hover {
-      background-color: var(--button-hover-bg-light);
-      border-color: var(--button-hover-border-light);
-      box-shadow: 0 0 12px #3399ffcc;
-      color: #336699;
-    }
-
-    /* Tooltip styling */
-.service-button {
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255,255,255,0.2);
-  padding: 12px 24px;
-  font-size: 1rem;
-  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  border-radius: 6px;
   color: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 240px;
+  gap: 10px;
+  width: auto;
+  min-width: 200px;
   justify-content: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
+
+body.light .service-button {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.service-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+}
+
 body.light .service-button:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
-    .service-button[data-tooltip]::after {
-      opacity: 0;
-    }
 
     /* Icons */
     .icon {
