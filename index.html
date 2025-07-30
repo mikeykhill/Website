@@ -323,9 +323,10 @@ body.light .small-btn:hover {
 }
 
 .bubble {
-  transition: transform 0.3s ease;
-  pointer-events: none; /* So they don’t block mouse input */
+  transition: transform 0.1s ease-out;
+  will-change: transform;
 }
+
 
 
 
@@ -584,41 +585,81 @@ body.light .small-btn:hover {
     });
   </script>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const bubbles = document.querySelectorAll('.bubble');
-    const influenceRadius = 100;
-    const maxDisplacement = 40;
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const bubbleData = [];
 
-    document.addEventListener('mousemove', e => {
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-
-      bubbles.forEach(bubble => {
-        const rect = bubble.getBoundingClientRect();
-        const bx = rect.left + rect.width / 2;
-        const by = rect.top + rect.height / 2;
-
-        const dx = mouseX - bx;
-        const dy = mouseY - by;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < influenceRadius) {
-          const angle = Math.atan2(dy, dx);
-          const pushStrength = (1 - distance / influenceRadius) * maxDisplacement;
-          const offsetX = -Math.cos(angle) * pushStrength;
-          const offsetY = -Math.sin(angle) * pushStrength;
-
-          // Apply transform without disrupting animation
-          bubble.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        } else {
-          // Reset to normal
-          bubble.style.transform = '';
-        }
+  // Helper to update bubble data dynamically
+  function refreshBubbleData() {
+    bubbleData.length = 0; // clear existing
+    const bubbles = document.querySelectorAll(".bubble");
+    bubbles.forEach((bubble) => {
+      const rect = bubble.getBoundingClientRect();
+      bubbleData.push({
+        el: bubble,
+        originX: rect.left + rect.width / 2,
+        originY: rect.top + rect.height / 2,
+        offsetX: 0,
+        offsetY: 0
       });
     });
+  }
+
+  refreshBubbleData();
+  window.addEventListener("resize", refreshBubbleData);
+
+  const repelDistance = 100;
+  const maxOffset = 40;
+  let mouseX = null;
+  let mouseY = null;
+
+  // Track latest mouse position
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
   });
+
+  // Reset on mouse leave
+  document.addEventListener("mouseleave", () => {
+    mouseX = null;
+    mouseY = null;
+  });
+
+  // Animate bubbles
+  function animate() {
+    bubbleData.forEach((bubble) => {
+      if (mouseX !== null && mouseY !== null) {
+        const dx = mouseX - bubble.originX;
+        const dy = mouseY - bubble.originY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < repelDistance) {
+          const angle = Math.atan2(dy, dx);
+          const repelStrength = (repelDistance - dist) / repelDistance;
+          bubble.offsetX += (-Math.cos(angle) * repelStrength * maxOffset - bubble.offsetX) * 0.2;
+          bubble.offsetY += (-Math.sin(angle) * repelStrength * maxOffset - bubble.offsetY) * 0.2;
+        } else {
+          // Ease back to origin
+          bubble.offsetX *= 0.9;
+          bubble.offsetY *= 0.9;
+        }
+      } else {
+        // Ease back to origin when mouse leaves
+        bubble.offsetX *= 0.9;
+        bubble.offsetY *= 0.9;
+      }
+
+      bubble.el.style.transform = `translate(${bubble.offsetX}px, ${bubble.offsetY}px)`;
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+});
 </script>
+
+
 
 
 </body>
