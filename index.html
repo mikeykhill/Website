@@ -143,25 +143,6 @@
     }
 
     /* Tooltip styling */
-    .service-button[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 110%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--tooltip-bg-dark);
-      color: var(--tooltip-text-dark);
-      padding: 6px 10px;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      white-space: nowrap;
-      box-shadow: 0 0 10px rgba(0,0,0,0.7);
-      opacity: 1;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 11;
-      text-shadow: none;
-    }
     body.light .service-button[data-tooltip]:hover::after {
       background: var(--tooltip-bg-light);
       color: var(--tooltip-text-light);
