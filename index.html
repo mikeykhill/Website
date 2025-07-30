@@ -545,7 +545,7 @@ body.light .small-btn:hover {
         const lon = pos.coords.longitude;
 
         try {
-          const geoResp = await fetch(https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon});
+          const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
           if (!geoResp.ok) throw new Error('Geo location fetch failed');
           const geoData = await geoResp.json();
           let city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
