@@ -552,97 +552,58 @@ try {
   const weatherResp = await fetch(weatherUrl);
   if (!weatherResp.ok) throw new Error('Weather fetch failed');
   const weatherData = await weatherResp.json();
+  
   const tempF = weatherData.current_weather.temperature;
-const wind = weatherData.current_weather.windspeed;
-const weatherCode = weatherData.current_weather.weathercode;
+  const wind = weatherData.current_weather.windspeed;
+  const code = weatherData.current_weather.weathercode;
 
-// Basic weather code to description mapping
-const weatherDescriptions = {
-  0: 'Clear',
-  1: 'Mainly Clear',
-  2: 'Partly Cloudy',
-  3: 'Overcast',
-  45: 'Fog',
-  48: 'Depositing Rime Fog',
-  51: 'Light Drizzle',
-  53: 'Moderate Drizzle',
-  55: 'Dense Drizzle',
-  56: 'Freezing Drizzle',
-  57: 'Dense Freezing Drizzle',
-  61: 'Slight Rain',
-  63: 'Moderate Rain',
-  65: 'Heavy Rain',
-  66: 'Freezing Rain',
-  67: 'Heavy Freezing Rain',
-  71: 'Slight Snow',
-  73: 'Moderate Snow',
-  75: 'Heavy Snow',
-  77: 'Snow Grains',
-  80: 'Slight Rain Showers',
-  81: 'Moderate Rain Showers',
-  82: 'Violent Rain Showers',
-  85: 'Slight Snow Showers',
-  86: 'Heavy Snow Showers',
-  95: 'Thunderstorm',
-  96: 'Thunderstorm with Hail',
-  99: 'Severe Thunderstorm'
-};
+  const weatherDescriptions = {
+    0: 'Clear', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+    45: 'Fog', 48: 'Depositing Rime Fog', 51: 'Light Drizzle', 53: 'Moderate Drizzle',
+    55: 'Dense Drizzle', 56: 'Freezing Drizzle', 57: 'Dense Freezing Drizzle',
+    61: 'Slight Rain', 63: 'Moderate Rain', 65: 'Heavy Rain', 66: 'Freezing Rain',
+    67: 'Heavy Freezing Rain', 71: 'Slight Snow', 73: 'Moderate Snow',
+    75: 'Heavy Snow', 77: 'Snow Grains', 80: 'Slight Rain Showers',
+    81: 'Moderate Rain Showers', 82: 'Violent Rain Showers',
+    85: 'Slight Snow Showers', 86: 'Heavy Snow Showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm with Hail', 99: 'Severe Thunderstorm'
+  };
+
   const weatherIconMap = {
-  0: '☀️',    // Clear
-  1: '🌤️',   // Mainly clear
-  2: '⛅',    // Partly cloudy
-  3: '☁️',    // Overcast
-  45: '🌫️',   // Fog
-  48: '🌫️',   // Depositing rime fog
-  51: '🌦️',   // Drizzle: light
-  53: '🌦️',   // Drizzle: moderate
-  55: '🌧️',   // Drizzle: dense
-  61: '🌦️',   // Rain: slight
-  63: '🌧️',   // Rain: moderate
-  65: '🌧️',   // Rain: heavy
-  66: '🌧️',   // Freezing rain: light
-  67: '🌧️',   // Freezing rain: heavy
-  71: '🌨️',   // Snow fall: slight
-  73: '🌨️',   // Snow fall: moderate
-  75: '❄️',   // Snow fall: heavy
-  80: '🌦️',   // Rain showers: slight
-  81: '🌧️',   // Rain showers: moderate
-  82: '⛈️',   // Rain showers: violent
-  95: '⛈️',   // Thunderstorm: slight/moderate
-  96: '⛈️',   // Thunderstorm with hail
-  99: '⛈️'    // Thunderstorm with heavy hail
-};
+    0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
+    51: '🌦️', 53: '🌦️', 55: '🌧️', 61: '🌦️', 63: '🌧️',
+    65: '🌧️', 66: '🌧️', 67: '🌧️', 71: '🌨️', 73: '🌨️',
+    75: '❄️', 80: '🌦️', 81: '🌧️', 82: '⛈️', 95: '⛈️',
+    96: '⛈️', 99: '⛈️'
+  };
 
+  const weatherDesc = weatherDescriptions[code] || '';
+  const weatherIcon = weatherIconMap[code] || '';
 
-const code = weatherData.current_weather.weathercode;
-const weatherDesc = code !== undefined ? (weatherCodeMap[code] || '') : '';
-const weatherIcon = weatherIconMap[code] || '';
+  const weatherIconEl = document.getElementById('weather-icon');
+  const weatherTextEl = document.getElementById('weather-text');
+  const locationEl = document.getElementById('location');
 
-const weatherIconEl = document.getElementById('weather-icon');
-const weatherTextEl = document.getElementById('weather-text');
+  if (weatherIcon) {
+    weatherIconEl.textContent = weatherIcon;
+    weatherIconEl.style.display = 'inline';
+  } else {
+    weatherIconEl.style.display = 'none';
+  }
 
-if (weatherIcon) {
-  weatherIconEl.textContent = weatherIcon;
-  weatherIconEl.style.display = 'inline';
-} else {
+  weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc}`;
+  locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+
+} catch (error) {
+  const locationEl = document.getElementById('location');
+  const weatherTextEl = document.getElementById('weather-text');
+  const weatherIconEl = document.getElementById('weather-icon');
+
+  locationEl.textContent = 'Weather data unavailable';
+  weatherTextEl.textContent = '';
   weatherIconEl.style.display = 'none';
 }
 
-weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc}`;
-
-  locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-  
-} catch {
-  locationEl.textContent = 'Weather data unavailable';
-  weatherEl.textContent = '';
-}
-}, () => {
-  cityStateEl.textContent = 'Location permission denied';
-  locationEl.textContent = '';
-  weatherEl.textContent = '';
-});
-}
-fetchWeather();
 
 // Button click handlers
 document.getElementById('jellyfin-btn').addEventListener('click', () => {
