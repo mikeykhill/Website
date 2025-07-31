@@ -591,7 +591,7 @@ const weatherDesc = weatherDescriptions[weatherCode] || 'Unknown';
 weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc}`;
 
   locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-  weatherEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph`;
+  
 } catch {
   locationEl.textContent = 'Weather data unavailable';
   weatherEl.textContent = '';
