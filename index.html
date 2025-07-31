@@ -583,7 +583,9 @@ body.light .small-btn:hover {
           weatherIconEl.style.display = 'none';
         }
 
-        weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc}`;
+        weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc} ${weatherIcon}`;
+        weatherIconEl.style.display = 'none';  // hide separate icon since now in text
+
         locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
 
       } catch (error) {
