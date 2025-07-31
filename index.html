@@ -614,9 +614,10 @@ const weatherDescriptions = {
 };
 
 
-const weatherDesc = weatherDescriptions[weatherCode] || 'Unknown';
-
+const code = weatherData.current_weather.weathercode;
+const weatherDesc = code !== undefined ? (weatherCodeMap[code] || '') : '';
 const weatherIcon = weatherIconMap[code] || '';
+
 const weatherIconEl = document.getElementById('weather-icon');
 const weatherTextEl = document.getElementById('weather-text');
 
@@ -628,7 +629,6 @@ if (weatherIcon) {
 }
 
 weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc}`;
-
 
   locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
   
