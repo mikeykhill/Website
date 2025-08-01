@@ -562,64 +562,53 @@ body.light .small-btn:hover {
       }
 
       // Fetch weather from Open-Meteo API in imperial units (F)
-      try {
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&timezone=auto`;
-        const weatherResp = await fetch(weatherUrl);
-        if (!weatherResp.ok) throw new Error('Weather fetch failed');
-        const weatherData = await weatherResp.json();
+     try {
+  const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=84acb4b38fbe409b9b3131518250108&q=${lat},${lon}&aqi=no`);
+  if (!response.ok) throw new Error('Weather fetch failed');
+  const data = await response.json();
 
-        const tempF = weatherData.current_weather.temperature;
-        const wind = weatherData.current_weather.windspeed;
-        const code = weatherData.current_weather.weathercode;
+  // Display city/state
+  const city = data.location.name;
+  const region = data.location.region || data.location.country;
+  cityStateEl.textContent = `${city}, ${region}`;
 
-        const weatherDescriptions = {
-          0: 'Clear', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
-          45: 'Fog', 48: 'Depositing Rime Fog', 51: 'Light Drizzle', 53: 'Moderate Drizzle',
-          55: 'Dense Drizzle', 56: 'Freezing Drizzle', 57: 'Dense Freezing Drizzle',
-          61: 'Slight Rain', 63: 'Moderate Rain', 65: 'Heavy Rain', 66: 'Freezing Rain',
-          67: 'Heavy Freezing Rain', 71: 'Slight Snow', 73: 'Moderate Snow',
-          75: 'Heavy Snow', 77: 'Snow Grains', 80: 'Slight Rain Showers',
-          81: 'Moderate Rain Showers', 82: 'Violent Rain Showers',
-          85: 'Slight Snow Showers', 86: 'Heavy Snow Showers',
-          95: 'Thunderstorm', 96: 'Thunderstorm with Hail', 99: 'Severe Thunderstorm'
-        };
+  // Display coordinates
+  locationEl.textContent = `Lat: ${lat}, Lon: ${lon}`;
 
-        const weatherIconMap = {
-          0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
-          51: '🌦️', 53: '🌦️', 55: '🌧️', 61: '🌦️', 63: '🌧️',
-          65: '🌧️', 66: '🌧️', 67: '🌧️', 71: '🌨️', 73: '🌨️',
-          75: '❄️', 80: '🌦️', 81: '🌧️', 82: '⛈️', 95: '⛈️',
-          96: '⛈️', 99: '⛈️'
-        };
+  // Prepare weather info
+  const tempF = data.current.temp_f;
+  const wind = data.current.wind_mph;
+  const condition = data.current.condition.text.toLowerCase(); // Normalize for matching
 
-        const weatherDesc = weatherDescriptions[code] || '';
-        const weatherIcon = weatherIconMap[code] || '';
+  // Map keywords to emojis
+  const emojiMap = [
+    { keywords: ['clear', 'sunny'], icon: '☀️' },
+    { keywords: ['partly', 'mostly sunny'], icon: '🌤️' },
+    { keywords: ['cloud', 'overcast'], icon: '☁️' },
+    { keywords: ['rain', 'shower', 'drizzle'], icon: '🌧️' },
+    { keywords: ['thunder'], icon: '⛈️' },
+    { keywords: ['snow'], icon: '❄️' },
+    { keywords: ['fog', 'mist', 'haze'], icon: '🌫️' },
+  ];
 
-        const weatherIconEl = document.getElementById('weather-icon');
-        const weatherTextEl = document.getElementById('weather-text');
-        const locationEl = document.getElementById('location');
+  let emoji = '🌡️'; // default
+  for (const { keywords, icon } of emojiMap) {
+    if (keywords.some(word => condition.includes(word))) {
+      emoji = icon;
+      break;
+    }
+  }
 
-        if (weatherIcon) {
-          weatherIconEl.textContent = weatherIcon;
-          weatherIconEl.style.display = 'inline';
-        } else {
-          weatherIconEl.style.display = 'none';
-        }
+  // Display in UI
+  const weatherTextEl = document.getElementById('weather-text');
+  weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${data.current.condition.text} ${emoji}`;
 
-        weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${weatherDesc} ${weatherIcon}`;
-        weatherIconEl.style.display = 'none';  // hide separate icon since now in text
+} catch (error) {
+  cityStateEl.textContent = 'Location found';
+  locationEl.textContent = `Lat: ${lat}, Lon: ${lon}`;
+  weatherEl.textContent = 'Weather data unavailable';
+}
 
-        locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-
-      } catch (error) {
-        const locationEl = document.getElementById('location');
-        const weatherTextEl = document.getElementById('weather-text');
-        const weatherIconEl = document.getElementById('weather-icon');
-
-        locationEl.textContent = 'Weather data unavailable';
-        weatherTextEl.textContent = '';
-        weatherIconEl.style.display = 'none';
-      }
     }); // end getCurrentPosition callback
   } // end fetchWeather function
 
