@@ -481,7 +481,7 @@ body.light .small-btn:hover {
   function populateBubbles() {
     bgContainer.innerHTML = '';
     const isLight = body.classList.contains('light');
-    const bubbleCount = 75;
+    const bubbleCount = 100;
     for(let i = 0; i < bubbleCount; i++) {
       bgContainer.appendChild(createBubble(i, isLight));
     }
