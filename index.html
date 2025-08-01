@@ -277,18 +277,25 @@
     /* Background Animations */
     /* Only bubbles now */
     #bg-animation-3 {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+    
     .bubble {
       position: absolute;
       border-radius: 50%;
       opacity: 0.5; /* increased opacity for brightness */
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
+      transition: background-color 0.5s ease;
+      background-color: #66ccff;
     }
 
     .service-group {
