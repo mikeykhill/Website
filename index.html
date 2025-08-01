@@ -616,7 +616,7 @@ body.light .small-btn:hover {
 
     } catch (error) {
       cityStateEl.textContent = 'Location found';
-      locationEl.textContent = Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)};
+      locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
       const weatherTextEl = document.getElementById('weather-text');
       weatherTextEl.textContent = 'Weather data unavailable';
     }
