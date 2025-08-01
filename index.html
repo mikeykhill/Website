@@ -522,9 +522,11 @@ function animateBubbles() {
       bubbles[i] = { el: newBubble, size: 15 + Math.random() * 20 };
     }
   }
-populateBubbles();
   requestAnimationFrame(animateBubbles);
 }
+populateBubbles();
+requestAnimationFrame(animateBubbles);
+    
 
   // Update bubble colors on theme change
   function updateBgColors(forceLight = null) {
