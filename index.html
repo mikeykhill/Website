@@ -406,6 +406,7 @@ body.light .small-btn:hover {
   const clockEl = document.getElementById('clock');
   const weatherEl = document.getElementById('weather');
   const bgContainer = document.getElementById('bg-animation-3');
+  const bubbles = [];
 
     if(window.innerWidth <= 768){
   document.body.style.position = 'fixed';
@@ -479,14 +480,44 @@ body.light .small-btn:hover {
 
   // Populate bubbles
   function populateBubbles() {
-    bgContainer.innerHTML = '';
-    const isLight = body.classList.contains('light');
-    const bubbleCount = 100;
-    for(let i = 0; i < bubbleCount; i++) {
-      bgContainer.appendChild(createBubble(i, isLight));
+  bgContainer.innerHTML = '';
+  const isLight = body.classList.contains('light');
+  const bubbleCount = 100;
+  bubbles.length = 0;
+
+  for (let i = 0; i < bubbleCount; i++) {
+    const bubble = createBubble(i, isLight);
+    const startSize = 15 + Math.random() * 50;
+    bubble.style.width = bubble.style.height = `${startSize}px`;
+    bgContainer.appendChild(bubble);
+    bubbles.push({ el: bubble, size: startSize });
+  }
+}
+
+     // To keep references and growth info
+const maxBubbleSize = 100; // px
+const growthRate = 0.2; // px per frame (adjust to taste)
+
+function animateBubbles() {
+  for (let i = 0; i < bubbles.length; i++) {
+    const bubble = bubbles[i].el;
+    bubbles[i].size += growthRate;
+
+
+    // Grow the bubble visually
+    bubble.style.width = bubble.style.height = `${bubbles[i].size}px`;
+
+    // Remove and replace if size exceeds max
+    if (bubbles[i].size >= maxBubbleSize) {
+      bgContainer.removeChild(bubble);
+      const newBubble = createBubble(i, body.classList.contains('light'));
+      bgContainer.appendChild(newBubble);
+      bubbles[i] = { el: newBubble, size: 15 + Math.random() * 20 };
     }
   }
-  populateBubbles();
+
+  requestAnimationFrame(animateBubbles);
+}
 
   // Update bubble colors on theme change
   function updateBgColors(forceLight = null) {
