@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Particle Fluid – Fluid Labs</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.svg" />
+  <meta name="description" content="Simulate a liquid made of individual particles. Adjust gravity, cohesion and particle count, toggle obstacles and attractors, and observe emergent fluid behaviour." />
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="logo">Fluid Labs</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="fluids-ink.html">Ink in Water</a></li>
+      <li><a href="fluids-particles.html" aria-current="page">Particle Fluid</a></li>
+      <li><a href="fluids-metaballs.html">Metaballs</a></li>
+      <li><a href="fluids-ripples.html">Ripples</a></li>
+    </ul>
+    <button class="theme-toggle" type="button">Theme</button>
+  </nav>
+  <main class="page" aria-label="Particle simulation page">
+    <div class="simulation-container">
+      <canvas id="particlesCanvas" class="simulation" aria-label="Particle fluid simulation" tabindex="0"></canvas>
+      <aside class="control-panel" aria-label="Control panel">
+        <h2>Particle Controls</h2>
+        <div class="group">
+          <label>Particle Count
+            <input type="range" id="particleCount" min="100" max="800" step="10" value="300" aria-label="Particle count" />
+          </label>
+          <label>Gravity
+            <input type="range" id="gravity" min="0" max="5" step="0.05" value="1" aria-label="Gravity" />
+          </label>
+          <label>Cohesion
+            <input type="range" id="cohesion" min="0" max="5" step="0.05" value="2" aria-label="Cohesion" />
+          </label>
+          <label>Obstacles
+            <input type="checkbox" id="obstacles" checked aria-label="Enable obstacles" />
+          </label>
+          <label>Mouse Attractor
+            <input type="checkbox" id="attractor" aria-label="Mouse attractor" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="pauseParticles">Pause</button>
+          <button id="resetParticles">Reset</button>
+          <button id="randomParticles">Randomize</button>
+          <button id="snapshotParticles">Snapshot</button>
+        </div>
+        <p style="font-size:0.75rem; opacity:0.7;">
+          Keyboard: Space – pause/resume, R – reset, 1/2/3 – presets, S – snapshot.
+        </p>
+      </aside>
+    </div>
+  </main>
+  <footer>
+    &copy; <span id="year"></span> Fluid Labs
+  </footer>
+  <script src="js/utils.js"></script>
+  <script src="js/particles.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

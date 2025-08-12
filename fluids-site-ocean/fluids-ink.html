@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ink in Water – Fluid Labs</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.svg" />
+  <meta name="description" content="Interactive ink in water fluid simulation. Adjust viscosity, diffusion and vorticity, then splat colourful dye into your own virtual aquarium." />
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="logo">Fluid Labs</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="fluids-ink.html" aria-current="page">Ink in Water</a></li>
+      <li><a href="fluids-particles.html">Particle Fluid</a></li>
+      <li><a href="fluids-metaballs.html">Metaballs</a></li>
+      <li><a href="fluids-ripples.html">Ripples</a></li>
+    </ul>
+    <button class="theme-toggle" type="button">Theme</button>
+  </nav>
+
+  <main class="page" aria-label="Ink simulation page">
+    <div class="simulation-container">
+      <canvas id="inkCanvas" class="simulation" aria-label="Fluid simulation" tabindex="0"></canvas>
+      <aside class="control-panel" aria-label="Control panel">
+        <h2>Ink Controls</h2>
+        <div class="group">
+          <label>Viscosity
+            <input type="range" id="viscosity" min="0" max="0.005" step="0.0001" value="0.0005" aria-label="Viscosity" />
+          </label>
+          <label>Diffusion
+            <input type="range" id="diffusion" min="0" max="0.005" step="0.0001" value="0.0005" aria-label="Diffusion" />
+          </label>
+          <label>Force
+            <input type="range" id="force" min="1" max="10" step="0.1" value="5" aria-label="Force" />
+          </label>
+          <label>Dye Colour
+            <input type="color" id="dye" value="#00e5ff" aria-label="Dye colour" />
+          </label>
+          <label>Vorticity
+            <input type="range" id="vorticity" min="0" max="2" step="0.01" value="0.5" aria-label="Vorticity" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="pause">Pause</button>
+          <button id="reset">Reset</button>
+          <button id="random">Randomize</button>
+          <button id="snapshot">Snapshot</button>
+        </div>
+        <p style="font-size:0.75rem; opacity:0.7;">
+          Keyboard: Space – pause/resume, R – reset, 1/2/3 – presets, S – snapshot.
+        </p>
+      </aside>
+    </div>
+  </main>
+  <footer>
+    &copy; <span id="year"></span> Fluid Labs
+  </footer>
+
+  <script src="js/utils.js"></script>
+  <script src="js/ink.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

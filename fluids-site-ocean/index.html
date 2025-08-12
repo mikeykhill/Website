@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluid Labs – Futuristic Fluid Simulations</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.svg" />
+  <meta name="description" content="Experience interactive fluid experiments with a futuristic twist. Explore ink flows, particle liquids, metaballs and more in this WebGL showcase." />
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="logo">Fluid Labs</div>
+    <ul>
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="fluids-ink.html">Ink in Water</a></li>
+      <li><a href="fluids-particles.html">Particle Fluid</a></li>
+      <li><a href="fluids-metaballs.html">Metaballs</a></li>
+      <li><a href="fluids-ripples.html">Ripples</a></li>
+    </ul>
+    <button class="theme-toggle" type="button">Theme</button>
+  </nav>
+
+  <header class="hero">
+    <canvas id="wavepool" aria-hidden="true"></canvas>
+    <h1>Welcome to Fluid Labs</h1>
+    <p>
+      Ride the lines. Our homepage now channels an artificial wave‑pool—rolling sets,
+      shimmering caustics—then jump into the experiments.
+    </p>
+    <div class="cta-buttons">
+      <a class="btn btn-primary" href="fluids-ink.html">Try Ink in Water</a>
+      <a class="btn btn-primary" href="fluids-particles.html">Explore Particles</a>
+      <a class="btn btn-primary" href="fluids-metaballs.html">Play with Metaballs</a>
+    </div>
+  </header>
+
+  <footer>
+    &copy; <span id="year"></span> Fluid Labs. Built for demonstration purposes.
+  </footer>
+
+  <script src="js/utils.js"></script>
+  <script src="js/index.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ripples – Fluid Labs</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.svg" />
+  <meta name="description" content="Create mesmerizing water ripples by disturbing a virtual surface. Adjust radius, damping and strength for different wave behaviours." />
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="logo">Fluid Labs</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="fluids-ink.html">Ink in Water</a></li>
+      <li><a href="fluids-particles.html">Particle Fluid</a></li>
+      <li><a href="fluids-metaballs.html">Metaballs</a></li>
+      <li><a href="fluids-ripples.html" aria-current="page">Ripples</a></li>
+    </ul>
+    <button class="theme-toggle" type="button">Theme</button>
+  </nav>
+  <main class="page" aria-label="Ripples simulation page">
+    <div class="simulation-container">
+      <canvas id="ripplesCanvas" class="simulation" aria-label="Ripple simulation" tabindex="0"></canvas>
+      <aside class="control-panel" aria-label="Control panel">
+        <h2>Ripple Controls</h2>
+        <div class="group">
+          <label>Ripple Radius
+            <input type="range" id="rippleRadius" min="1" max="5" step="1" value="2" aria-label="Ripple radius" />
+          </label>
+          <label>Damping
+            <input type="range" id="damping" min="0.95" max="0.999" step="0.001" value="0.99" aria-label="Damping" />
+          </label>
+          <label>Strength
+            <input type="range" id="strength" min="0.5" max="2.0" step="0.05" value="1.0" aria-label="Strength" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="pauseRipples">Pause</button>
+          <button id="resetRipples">Reset</button>
+          <button id="randomRipples">Randomize</button>
+          <button id="snapshotRipples">Snapshot</button>
+        </div>
+        <p style="font-size:0.75rem; opacity:0.7;">
+          Keyboard: Space – pause/resume, R – reset, 1/2/3 – presets, S – snapshot.
+        </p>
+      </aside>
+    </div>
+  </main>
+  <footer>
+    &copy; <span id="year"></span> Fluid Labs
+  </footer>
+  <script src="js/utils.js"></script>
+  <script src="js/ripples.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

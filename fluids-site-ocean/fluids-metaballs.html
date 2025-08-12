@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metaballs – Fluid Labs</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.svg" />
+  <meta name="description" content="Play with blobby fluids! Adjust the number of blobs, tension threshold, noise and colour scheme for mesmerizing metaball interactions." />
+</head>
+<body>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="logo">Fluid Labs</div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="fluids-ink.html">Ink in Water</a></li>
+      <li><a href="fluids-particles.html">Particle Fluid</a></li>
+      <li><a href="fluids-metaballs.html" aria-current="page">Metaballs</a></li>
+      <li><a href="fluids-ripples.html">Ripples</a></li>
+    </ul>
+    <button class="theme-toggle" type="button">Theme</button>
+  </nav>
+  <main class="page" aria-label="Metaball simulation page">
+    <div class="simulation-container">
+      <canvas id="metaballsCanvas" class="simulation" aria-label="Metaballs simulation" tabindex="0"></canvas>
+      <aside class="control-panel" aria-label="Control panel">
+        <h2>Metaballs Controls</h2>
+        <div class="group">
+          <label>Blob Count
+            <input type="range" id="blobCount" min="3" max="12" step="1" value="5" aria-label="Blob count" />
+          </label>
+          <label>Tension (Threshold)
+            <input type="range" id="tension" min="0.5" max="2.0" step="0.01" value="1.0" aria-label="Tension" />
+          </label>
+          <label>Noise
+            <input type="range" id="noise" min="0" max="0.5" step="0.01" value="0.0" aria-label="Noise" />
+          </label>
+          <label>Colour Start
+            <input type="color" id="colorStart" value="#00e5ff" aria-label="Start colour" />
+          </label>
+          <label>Colour End
+            <input type="color" id="colorEnd" value="#ff00e5" aria-label="End colour" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="pauseMeta">Pause</button>
+          <button id="resetMeta">Reset</button>
+          <button id="randomMeta">Randomize</button>
+          <button id="snapshotMeta">Snapshot</button>
+        </div>
+        <p style="font-size:0.75rem; opacity:0.7;">
+          Keyboard: Space – pause/resume, R – reset, 1/2/3 – presets, S – snapshot.
+        </p>
+      </aside>
+    </div>
+  </main>
+  <footer>
+    &copy; <span id="year"></span> Fluid Labs
+  </footer>
+  <script src="js/utils.js"></script>
+  <script src="js/metaballs.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
