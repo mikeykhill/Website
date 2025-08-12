@@ -1,0 +1,91 @@
+/* (same CSS as provided in the answer) */
+:root {
+  --color-bg: #04070a;
+  --color-fg: #e9ecf1;
+  --color-primary: #00e5ff;
+  --color-secondary: #ff00e5;
+  --color-tertiary: #8a00ff;
+  --color-panel-bg: rgba(255, 255, 255, 0.05);
+  --color-panel-border: rgba(255, 255, 255, 0.15);
+  --color-nav-bg: rgba(0, 0, 0, 0.6);
+  --color-nav-hover: rgba(255, 255, 255, 0.1);
+  --glass-blur: 12px;
+  --font-family-heading: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-family-mono: 'Roboto Mono', 'Courier New', monospace;
+  --transition-fast: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  --nav-height: 60px;
+  --panel-width: 280px;
+}
+[data-theme="light"] {
+  --color-bg: #fdfdfd;
+  --color-fg: #0a0a0a;
+  --color-primary: #006aff;
+  --color-secondary: #c50086;
+  --color-tertiary: #5e00b9;
+  --color-panel-bg: rgba(0, 0, 0, 0.05);
+  --color-panel-border: rgba(0, 0, 0, 0.15);
+  --color-nav-bg: rgba(255, 255, 255, 0.7);
+  --color-nav-hover: rgba(0, 0, 0, 0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  font-family: var(--font-family-heading);
+  background-color: var(--color-bg); color: var(--color-fg);
+  overflow-x: hidden; scroll-behavior: smooth; line-height: 1.5;
+}
+a { color: var(--color-primary); text-decoration: none; transition: color var(--transition-fast); }
+a:hover, a:focus-visible { color: var(--color-secondary); }
+.nav { position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
+  background: var(--color-nav-bg); backdrop-filter: blur(var(--glass-blur));
+  display: flex; align-items: center; justify-content: space-between; padding: 0 1rem;
+  z-index: 1000; border-bottom: 1px solid var(--color-panel-border); }
+.nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-primary); }
+.nav ul { list-style: none; display: flex; gap: 1rem; align-items: center; }
+.nav li a { padding: 0.5rem 0.75rem; border-radius: 4px; transition: background-color var(--transition-fast), color var(--transition-fast); }
+.nav li a:hover, .nav li a:focus-visible, .nav li a[aria-current="page"] { background: var(--color-nav-hover); color: var(--color-secondary); }
+.theme-toggle { display: flex; align-items: center; gap: 0.25rem; cursor: pointer; font-size: 1rem; color: var(--color-fg);
+  border-radius: 4px; padding: 0.25rem 0.5rem; transition: background-color var(--transition-fast); }
+.theme-toggle:hover, .theme-toggle:focus-visible { background: var(--color-nav-hover); }
+.hero { position: relative; height: 100vh; padding-top: var(--nav-height); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; margin-bottom: 1rem; text-shadow: 0 0 10px var(--color-primary); }
+.hero p { font-size: clamp(1rem, 2vw, 1.25rem); max-width: 600px; margin: 0 auto 2rem; opacity: 0.85; }
+.hero .cta-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 1rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;
+  cursor: pointer; transition: transform var(--transition-fast), box-shadow var(--transition-fast); border: none; outline: none; }
+.btn-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: #fff; box-shadow: 0 0 10px var(--color-primary); }
+.btn-primary:hover, .btn-primary:focus-visible { transform: translateY(-2px); box-shadow: 0 4px 15px var(--color-primary); }
+.btn-secondary { background: var(--color-panel-bg); border: 1px solid var(--color-panel-border); color: var(--color-primary); }
+.btn-secondary:hover, .btn-secondary:focus-visible { background: var(--color-nav-hover); }
+.page { display: flex; flex-direction: column; min-height: 100vh; padding-top: var(--nav-height); }
+.simulation-container { position: relative; flex: 1; display: flex; justify-content: center; align-items: stretch; overflow: hidden; }
+.control-panel { position: absolute; top: 0; right: 0; width: var(--panel-width); max-width: 90vw; height: 100%; padding: 1rem;
+  display: flex; flex-direction: column; gap: 1rem; background: var(--color-panel-bg); border-left: 1px solid var(--color-panel-border);
+  backdrop-filter: blur(var(--glass-blur)); overflow-y: auto; z-index: 10; }
+.control-panel h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--color-primary); }
+.control-panel label { display: flex; flex-direction: column; font-size: 0.875rem; gap: 0.25rem; }
+.control-panel input[type="range"],
+.control-panel input[type="number"],
+.control-panel input[type="color"],
+.control-panel select { width: 100%; padding: 0.3rem; border-radius: 4px; border: 1px solid var(--color-panel-border);
+  background: var(--color-bg); color: var(--color-fg); }
+.control-panel button { padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 4px; border: none; cursor: pointer; background: var(--color-primary); color: #fff;
+  transition: background var(--transition-fast), transform var(--transition-fast); }
+.control-panel button:hover, .control-panel button:focus-visible { background: var(--color-secondary); transform: translateY(-1px); }
+.control-panel .group { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-panel .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+canvas.simulation { width: 100%; height: 100%; touch-action: none; background: radial-gradient(circle at top left, rgba(255,255,255,0.05), transparent); }
+footer { text-align: center; padding: 1rem; font-size: 0.75rem; opacity: 0.7; }
+@media (max-width: 768px) {
+  .control-panel { width: 100%; height: auto; position: relative; border-left: none; border-top: 1px solid var(--color-panel-border); display: block; }
+  .simulation-container { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
+/* Wave-pool visibility overrides */
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block}
+.hero h1,.hero p,.hero .cta-buttons{position:relative;z-index:1}
