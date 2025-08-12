@@ -41,7 +41,11 @@ a:hover, a:focus-visible { color: var(--color-secondary); }
   background: var(--color-nav-bg); backdrop-filter: blur(var(--glass-blur));
   display: flex; align-items: center; justify-content: space-between; padding: 0 1rem;
   z-index: 1000; border-bottom: 1px solid var(--color-panel-border); }
-.nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-primary); }
+.nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-primary); text-decoration: none; cursor: pointer; }
+.nav .logo:hover,
+.nav .logo:focus-visible {
+  color: var(--color-secondary); /* match hover colors for links */
+}
 .nav ul { list-style: none; display: flex; gap: 1rem; align-items: center; }
 .nav li a { padding: 0.5rem 0.75rem; border-radius: 4px; transition: background-color var(--transition-fast), color var(--transition-fast); }
 .nav li a:hover, .nav li a:focus-visible, .nav li a[aria-current="page"] { background: var(--color-nav-hover); color: var(--color-secondary); }
