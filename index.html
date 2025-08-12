@@ -263,6 +263,45 @@
         padding: 6px 10px;
         right: 15px;
       }
+    /* Fluid button styled like toggle-theme */
+#fluid-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  border: 2px solid var(--button-border-dark);
+  background-color: var(--button-bg-dark);
+  color: var(--text-dark);
+  z-index: 30;
+  text-shadow: inherit;
+  text-decoration: none; /* Removes underline */
+  display: inline-block;
+}
+
+body.light #fluid-btn {
+  border-color: var(--button-border-light);
+  background-color: var(--button-bg-light);
+  color: var(--text-light);
+}
+
+#fluid-btn:hover {
+  background-color: var(--button-hover-bg-dark);
+  border-color: var(--button-hover-border-dark);
+  color: #99ddff;
+}
+
+body.light #fluid-btn:hover {
+  background-color: var(--button-hover-bg-light);
+  border-color: var(--button-hover-border-light);
+  color: #336699;
+}
+
     }
 
     @media (max-width: 768px) {
@@ -335,48 +374,7 @@ body.light .small-btn {
 body.light .small-btn:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
-      /* Fluid button style matches toggle-theme */
-  #fluid-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    padding: 8px 14px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: 20px;
-    cursor: pointer;
-    user-select: none;
-    transition:
-      background-color 0.3s,
-      border-color 0.3s,
-      color 0.3s;
-    border: 2px solid var(--button-border-dark);
-    background-color: var(--button-bg-dark);
-    color: var(--text-dark);
-    z-index: 30;
-    text-shadow: inherit;
-  }
-
-  body.light #fluid-btn {
-    border-color: var(--button-border-light);
-    background-color: var(--button-bg-light);
-    color: var(--text-light);
-  }
-
-  #fluid-btn:hover {
-    background-color: var(--button-hover-bg-dark);
-    border-color: var(--button-hover-border-dark);
-    color: #99ddff;
-  }
-
-  body.light #fluid-btn:hover {
-    background-color: var(--button-hover-bg-light);
-    border-color: var(--button-hover-border-light);
-    color: #336699;
-  }
-
-
-
+      
     /* Animations keyframes */
     @keyframes floatBubble {
       0%, 100% {transform: translateY(0);}
@@ -386,7 +384,8 @@ body.light .small-btn:hover {
 </head>
 <body>
   <!-- Fluid Button -->
-  <button id="fluid-btn" type="button">Fluid</button>
+<a id="fluid-btn" href="https://mikeykhill.github.io/Website/fluids-site-ocean/">Fluid</a>
+
   <!-- Toggle Theme Button -->
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
 
@@ -675,11 +674,6 @@ body.light .small-btn:hover {
   document.getElementById('nextcloud-btn').addEventListener('click', () => {
     window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
   });
-
-    document.getElementById('fluid-btn').addEventListener('click', () => {
-  window.location.href = "https://mikeykhill.github.io/Website/fluids-site-ocean/";
-});
-
 
 </script>
 
