@@ -303,6 +303,48 @@ body.light #fluid-btn:hover {
   color: #336699;
 }
 
+
+
+
+
+    #galaga-btn {
+  position: fixed;
+  top: 60px;
+  left: 20px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  border: 2px solid var(--button-border-dark);
+  background-color: var(--button-bg-dark);
+  color: var(--text-dark);
+  z-index: 30;
+  text-shadow: inherit;
+  text-decoration: none; /* Removes underline */
+  display: inline-block;
+}
+
+body.light #galaga-btn {
+  border-color: var(--button-border-light);
+  background-color: var(--button-bg-light);
+  color: var(--text-light);
+}
+
+#galaga-btn:hover {
+  background-color: var(--button-hover-bg-dark);
+  border-color: var(--button-hover-border-dark);
+  color: #99ddff;
+}
+
+body.light #galaga-btn:hover {
+  background-color: var(--button-hover-bg-light);
+  border-color: var(--button-hover-border-light);
+  color: #336699;
+}
+
     
 
     @media (max-width: 768px) {
@@ -388,7 +430,7 @@ body.light .small-btn:hover {
   <a id="fluid-btn" href="https://mikeykhill.github.io/Website/fluids-site-ocean/">Fluid</a>
   
   <!-- Galaga Button -->
-  <a id="fluid-btn" href="https://mikeykhill.github.io/Website/galaga/">Fluid</a>
+  <a id="galaga-btn" href="https://mikeykhill.github.io/Website/galaga/">Fluid</a>
 
   <!-- Toggle Theme Button -->
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
