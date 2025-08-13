@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Undersea Galaga – Retro Underwater Shooter</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+      background: #001f3f;
+      color: #fff;
+      overflow: hidden;
+    }
+    /* home / overlay UI */
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      /* Slightly translucent backdrop so the gameplay remains visible on the home screen */
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 2;
+      visibility: hidden;
+    }
+    #overlay.visible {
+      visibility: visible;
+    }
+    .button {
+      padding: 10px 20px;
+      background: #0074D9;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 18px;
+    }
+    .button:hover {
+      background: #005fa3;
+    }
+    /* Center the play button on the home screen */
+    #playBtn {
+      margin: 0 auto;
+      display: block;
+    }
+    #title {
+      font-size: 36px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #scoreboard {
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 4px;
+    }
+    #scoreboard table {
+      border-collapse: collapse;
+    }
+    #scoreboard th, #scoreboard td {
+      padding: 4px 6px;
+      text-align: left;
+      color: #fff;
+      font-size: 14px;
+    }
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(#001f3f, #0074D9);
+    }
+    #instructions {
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    #initials-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #initials-form input {
+      font-size: 24px;
+      padding: 6px;
+      width: 100px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <!-- Overlay container for home, pause, gameover, initials prompts -->
+  <div id="overlay">
+    <div id="home-screen">
+      <div id="title">Undersea Galaga</div>
+      <button id="playBtn" class="button">Play</button>
+      <div id="instructions">
+        <p>Move: Left/Right arrow keys</p>
+        <p>Shoot: Space bar</p>
+        <p>Pause: Esc</p>
+      </div>
+      <div id="scoreboard"></div>
+    </div>
+    <div id="pause-screen" style="display:none; text-align:center;">
+      <div style="font-size:32px; margin-bottom:20px;">Paused</div>
+      <button id="resumeBtn" class="button">Resume</button>
+      <button id="restartBtn" class="button">Restart</button>
+      <button id="homeBtn" class="button">Home</button>
+    </div>
+    <div id="gameover-screen" style="display:none; text-align:center;">
+      <div style="font-size:32px; margin-bottom:10px;">Game Over</div>
+      <div id="finalScore" style="margin-bottom:10px;"></div>
+      <div id="leaderboard-prompt" style="display:none;">
+        <p>New High Score! Enter your initials:</p>
+        <form id="initials-form">
+          <input type="text" id="initialsInput" maxlength="3" />
+          <button type="submit" class="button">Save</button>
+        </form>
+      </div>
+      <button id="retryBtn" class="button" style="margin-top:10px;">Retry</button>
+      <button id="gameoverHomeBtn" class="button" style="margin-top:10px;">Home</button>
+    </div>
+  </div>
+  <script>
+  (() => {
+    // Canvas and context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Resize canvas to full window
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Game states
+    const STATES = {
+      HOME: 'home',
+      PLAYING: 'playing',
+      PAUSED: 'paused',
+      GAMEOVER: 'gameover',
+      ENTER_INITIALS: 'enter_initials'
+    };
+    let state = STATES.HOME;
+
+    // UI elements
+    const overlay = document.getElementById('overlay');
+    const homeScreen = document.getElementById('home-screen');
+    const pauseScreen = document.getElementById('pause-screen');
+    const gameoverScreen = document.getElementById('gameover-screen');
+    const leaderboardPrompt = document.getElementById('leaderboard-prompt');
+    const scoreboardDiv = document.getElementById('scoreboard');
+
+    // Buttons
+    const playBtn = document.getElementById('playBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const gameoverHomeBtn = document.getElementById('gameoverHomeBtn');
+    const initialsInput = document.getElementById('initialsInput');
+    const initialsForm = document.getElementById('initials-form');
+    const finalScoreDiv = document.getElementById('finalScore');
+
+    // Data structures
+    let player;
+    let enemies = [];
+    let bullets = [];
+    let enemyBullets = [];
+    let powerUps = [];
+    // Pop effects array for enemy destruction animations
+    let pops = [];
+    // Auto‑mode variables: when the home screen is shown, the game runs in the
+    // background with an automated submarine that moves and shoots on its own.
+    // autoMode is true when state === HOME; autoDir controls the horizontal
+    // direction of the submarine; autoShootTimer accumulates time between shots.
+    let autoMode = true;
+    let autoDir = 1;
+    let autoShootTimer = 0;
+    // Wave announcement timer (ms). When greater than zero, the game draws a
+    // banner indicating the current wave at the top of the screen.
+    let waveAnnouncementTime = 0;
+    // Current boss, if a boss wave is active. Null when no boss is present.
+    let boss = null;
+    let score = 0;
+    let level = 1;
+    let highScores = [];
+    const MAX_HIGH_SCORES = 5;
+
+    // Input state
+    const keys = {
+      left: false,
+      right: false,
+      shoot: false
+    };
+
+    // Timing
+    let lastShotTime = 0;
+    // Base cooldown for shooting (ms). A higher value means slower firing.
+    // Normal firing will use this value directly. The default here
+    // (400ms) yields 2.5 shots per second. When the rapid‑fire power‑up
+    // is active we override this cooldown to 50ms (20 shots per second).
+    let shotCooldown = 400; // ms between shots
+    let lastUpdateTime = performance.now();
+
+    // Load high scores from localStorage
+    function loadHighScores() {
+      const data = localStorage.getItem('underseaGalagaHighScores');
+      if (data) {
+        try {
+          highScores = JSON.parse(data);
+        } catch (e) {
+          highScores = [];
+        }
+      }
+    }
+
+    function saveHighScores() {
+      localStorage.setItem('underseaGalagaHighScores', JSON.stringify(highScores));
+    }
+
+    function updateScoreboard() {
+      let html = '<table><tr><th>Rank</th><th>Initials</th><th>Score</th></tr>';
+      highScores.forEach((entry, i) => {
+        html += `<tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`;
+      });
+      html += '</table>';
+      scoreboardDiv.innerHTML = html;
+    }
+
+    // Entity classes
+    class Player {
+      constructor() {
+        // Dimensions aligned with our 40×40 pixel sprite
+        this.width = 40;
+        this.height = 40;
+        this.x = canvas.width / 2 - this.width / 2;
+        this.y = canvas.height - this.height - 20;
+        this.speed = 300; // pixels per second
+        this.lives = 3;
+        this.dualMode = false;
+        this.captured = false; // true when captured and waiting for rescue
+        // power‑up timers (ms). When greater than zero, effect is active
+        this.invincibleTime = 0; // temporary invincibility (shield)
+        this.speedBoostTime = 0; // increased horizontal movement speed
+        this.rapidFireTime = 0;  // reduced shot cooldown for faster firing
+        this.slowTime = 0;       // slows down enemies and projectiles
+      }
+      update(dt) {
+        if (this.captured) return;
+        // decrement timers by real time dt
+        if (this.speedBoostTime > 0) this.speedBoostTime -= dt;
+        if (this.invincibleTime > 0) this.invincibleTime -= dt;
+        if (this.rapidFireTime > 0) this.rapidFireTime -= dt;
+        if (this.slowTime > 0) this.slowTime -= dt;
+        const currentSpeed = this.speed * (this.speedBoostTime > 0 ? 1.5 : 1);
+        if (keys.left) {
+          this.x -= currentSpeed * dt / 1000;
+        }
+        if (keys.right) {
+          this.x += currentSpeed * dt / 1000;
+        }
+        // Clamp position
+        this.x = Math.max(0, Math.min(canvas.width - this.getWidth(), this.x));
+        // Shooting
+        if (keys.shoot) {
+          this.shoot();
+        }
+      }
+      getWidth() {
+        // In dual mode, width is increased
+        return this.dualMode ? this.width * 2 + 10 : this.width;
+      }
+      shoot() {
+        const now = performance.now();
+        // Determine bullet capacity
+        const activeBullets = bullets.filter(b => b.fromPlayer);
+        const rapidFire = this.rapidFireTime > 0;
+        // Increase bullet limit when rapid fire is active. We allow more
+        // simultaneous bubbles when rapid fire is on to accommodate the
+        // additional diagonal shots. Without rapid fire the limits remain
+        // conservative (2 for single, 4 for dual). With rapid fire we
+        // substantially increase capacity to prevent clipping the rapid
+        // stream (10 for single, 20 for dual).
+        let bulletLimit;
+        if (this.dualMode) {
+          bulletLimit = rapidFire ? 20 : 4;
+        } else {
+          bulletLimit = rapidFire ? 10 : 2;
+        }
+        // Adjust cooldown for rapid fire. When rapid fire is active we use a
+        // fixed 50ms cooldown, yielding 20 shots per second. Otherwise we
+        // use the base shotCooldown (400ms), giving 2.5 shots per second.
+        const effectiveCooldown = rapidFire ? 50 : shotCooldown;
+        if (now - lastShotTime < effectiveCooldown) return;
+        if (activeBullets.length >= bulletLimit) return;
+        lastShotTime = now;
+        // Bullet position(s)
+        const y = this.y;
+        if (this.dualMode) {
+          // positions relative to each submarine
+          const subWidth = this.width;
+          const pos1 = this.x + subWidth * 0.25;
+          const pos2 = this.x + subWidth * 0.75 + subWidth + 10;
+          // centre bullets for each submarine
+          bullets.push(new Bullet(pos1, y, -500, 0));
+          bullets.push(new Bullet(pos2, y, -500, 0));
+          if (rapidFire) {
+            // Fire additional diagonal shots when rapid fire is active. We
+            // emit four extra bubbles per submarine: two moderate diagonals
+            // and two wider spreads. This results in five bubbles per
+            // submarine (10 total for dual mode).
+            const offsets = [-300, -150, 150, 300];
+            offsets.forEach(dx => {
+              bullets.push(new Bullet(pos1, y, -500, dx));
+              bullets.push(new Bullet(pos2, y, -500, dx));
+            });
+          }
+        } else {
+          const baseX = this.x + this.getWidth() / 2;
+          bullets.push(new Bullet(baseX, y, -500, 0));
+          if (rapidFire) {
+            // Add four diagonal bubbles around the main shot to create a
+            // five‑way spread. Two moderate diagonals and two wider.
+            const offsets = [-300, -150, 150, 300];
+            offsets.forEach(dx => {
+              bullets.push(new Bullet(baseX, y, -500, dx));
+            });
+          }
+        }
+      }
+      draw() {
+        // Render submarine(s) using sprite; skip drawing when captured
+        if (this.captured) return;
+        if (submarineSprite.complete) {
+          if (this.dualMode) {
+            // draw two subs separated by 10px
+            ctx.drawImage(submarineSprite, this.x, this.y, this.width, this.height);
+            ctx.drawImage(submarineSprite, this.x + this.width + 10, this.y, this.width, this.height);
+          } else {
+            ctx.drawImage(submarineSprite, this.x, this.y, this.width, this.height);
+          }
+        } else {
+          // fallback yellow rectangles if sprite not loaded
+          ctx.fillStyle = '#ffd700';
+          if (this.dualMode) {
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.fillRect(this.x + this.width + 10, this.y, this.width, this.height);
+          } else {
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+          }
+        }
+        // Draw shield if invincibility active
+        if (this.invincibleTime > 0) {
+          const w = this.getWidth();
+          ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(this.x + w / 2, this.y + this.height / 2, this.height, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    class Bullet {
+      /**
+       * A projectile fired by either the player or an enemy. Enemy bullets travel
+       * faster than player bullets to increase challenge. Tracking missiles can
+       * home in on the player's horizontal position until they pass the
+       * submarine's y‑coordinate, after which they fly straight down.
+       *
+       * @param {number} x Starting x position
+       * @param {number} y Starting y position
+       * @param {number} dy Vertical velocity (pixels per second)
+       * @param {number} dx Horizontal velocity (pixels per second)
+       * @param {boolean} fromPlayer True if fired by player
+       * @param {boolean} tracking True if this is a homing missile
+       */
+      constructor(x, y, dy, dx = 0, fromPlayer = true, tracking = false) {
+        this.x = x;
+        this.y = y;
+        this.fromPlayer = fromPlayer;
+        // Adjust dimensions: tracking missiles are larger and more
+        // distinguishable than standard bullets. Otherwise use default small
+        // dimensions.
+        if (!fromPlayer && tracking) {
+          this.width = 6;
+          this.height = 14;
+        } else {
+          this.width = 4;
+          this.height = 8;
+        }
+        this.tracking = tracking;
+        // Enemy bullets travel faster than player bullets. For homing missiles
+        // we slow them down by 25% relative to other enemy projectiles to make
+        // dodging more manageable. Base enemy factor is 1.5.
+        let speedFactor;
+        if (fromPlayer) {
+          speedFactor = 1;
+        } else {
+          const baseFactor = 1.5;
+          speedFactor = tracking ? baseFactor * 0.75 : baseFactor;
+        }
+        this.dy = dy * speedFactor;
+        this.dx = dx * speedFactor;
+      }
+      update(dt) {
+        // Homing behaviour: missiles track the player's x position until
+        // reaching the player's y coordinate. Only applicable for enemy bullets.
+        if (this.tracking && !this.fromPlayer && player) {
+          // If the missile has not yet reached the player's y coordinate, adjust
+          // dx towards the player. Otherwise, stop tracking and fall straight.
+          if (this.y < player.y) {
+            const targetX = player.x + player.getWidth() / 2;
+            // Determine direction towards player; horizontal speed constant
+            const dir = targetX > this.x ? 1 : -1;
+            const horizontalSpeed = 200; // px per second
+            this.dx = dir * horizontalSpeed;
+          } else {
+            // Stop tracking once the missile has passed the player's y position
+            this.tracking = false;
+            this.dx = 0;
+          }
+        }
+        this.x += this.dx * dt / 1000;
+        this.y += this.dy * dt / 1000;
+      }
+      draw() {
+        // Distinguish projectile types by colour and shape
+        if (!this.fromPlayer && this.tracking) {
+          // Draw a missile with a triangular nose and a rectangular body
+          ctx.fillStyle = '#FF851B'; // orange for tracking missiles
+          const w = this.width;
+          const h = this.height;
+          // Determine body and nose proportions
+          const noseHeight = h * 0.3;
+          const bodyHeight = h - noseHeight;
+          // Top of the missile (nose tip)
+          const tipY = this.y - h / 2;
+          // Draw body
+          ctx.fillRect(this.x - w / 2, tipY + noseHeight, w, bodyHeight);
+          // Draw triangular nose
+          ctx.beginPath();
+          ctx.moveTo(this.x - w / 2, tipY + noseHeight);
+          ctx.lineTo(this.x + w / 2, tipY + noseHeight);
+          ctx.lineTo(this.x, tipY);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // Regular bullets: simple rectangles with colour based on source
+          ctx.fillStyle = this.fromPlayer ? '#00bfff' : '#ff4136';
+          ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        }
+      }
+      offScreen() {
+        return this.y < -20 || this.y > canvas.height + 20 || this.x < -20 || this.x > canvas.width + 20;
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // Power‑up definitions
+    // Four distinct power‑ups with their own sprites. Each sprite is a simple
+    // 24×24 pixel icon drawn in a retro style and embedded as a Base64 data URI.
+    // invincible: yellow star – grants temporary invincibility (shield)
+    // rapid: red zigzag – reduces shot cooldown for faster firing
+    // slow: blue snail – slows down time for enemies and projectiles
+    // speed: green arrow – increases the submarine's movement speed
+    const POWER_UP_SPRITE_DATA = {
+      invincible:
+        // yellow star icon drawn via PIL script (24×24)
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAoklEQVR4nM3VWw6AIAxE0Wl3w/4X43Lwy4RHawdoonwZY+4RtVHqhQoAUiAI1s61Op7IWG1L27vJQNqGFIg+BxnIGAeaR3SKWPEOOEG8+ATsIG9xE1hBorgLMAgTB8APDHMj1nJ3wASYiZbMCbZWuIPfA9++ZO9TXBlGF4i+cxYxAXqICGQC2DiLdMBqnEHMX+ZKPEI0I/6GaFbcQ8xfZiZyA6vjci0MA3TpAAAAAElFTkSuQmCC',
+      rapid:
+        // red rapid‑fire icon (two vertical bars)
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAK0lEQVR4nGNgGAWjgIGBgeE/A8N/YsSwASbqO2fUghFnwSgYBaNgFAwGAAA/LAQJEcR1hgAAAABJRU5ErkJggg==',
+      slow:
+        // blue snail/time icon (two circles)
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAASklEQVR4nGNgGAWjgFLAiFNm////GGKOjIwE5YiyAJsBxAAsljBRzXAcejEtoDIYtYAMC3AkN6IAUakInyWOjIx45UbBKBgFAwMATS4QHbpVCxgAAAAASUVORK5CYII=',
+      speed:
+        // green arrow icon
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAWUlEQVR4nO2TOQ4AIAgExVf7BH+NlYkJcqgUFjsVCbBDoVRWuHHJgDrNsmqNjHApeJVsdqXgVqLs7AWnEmNWF0Qlzowt8AICB/gCLSjjxQm4cdpfAQAA8BMDG8APiFxP8EoAAAAASUVORK5CYII='
+    };
+    // Image objects for power‑ups
+    const powerUpSprites = {};
+    Object.keys(POWER_UP_SPRITE_DATA).forEach(type => {
+      const img = new Image();
+      img.src = POWER_UP_SPRITE_DATA[type];
+      powerUpSprites[type] = img;
+    });
+
+    // PowerUp class
+    class PowerUp {
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type; // 'invincible','rapid','slow','speed'
+        this.dy = 60; // falling speed
+        this.width = 24;
+        this.height = 24;
+      }
+      update(dt) {
+        this.y += this.dy * dt / 1000;
+      }
+      draw() {
+        const img = powerUpSprites[this.type];
+        if (img && img.complete) {
+          ctx.drawImage(img, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        } else {
+          // fallback: small coloured circle
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      offScreen() {
+        return this.y > canvas.height + 20;
+      }
+    }
+
+    // Enemy definitions
+    const EnemyTypes = {
+      ANGLER: 'angler',
+      SQUID: 'squid',
+      JELLY: 'jelly',
+      LION: 'lion',
+      EEL: 'eel',
+      PUFFER: 'puffer',
+      HAMMER: 'hammer',
+      SNAKE: 'snake',
+      RAY: 'ray',
+      CRAB: 'crab'
+    };
+
+    // Return a representative hex colour for each enemy type. These colours are
+    // reused for the pop effect when an enemy is destroyed. If you update
+    // sprite colours, adjust these values accordingly.
+    function getEnemyColor(type) {
+      switch (type) {
+        case EnemyTypes.ANGLER: return '#39CCCC';
+        case EnemyTypes.SQUID: return '#B10DC9';
+        case EnemyTypes.JELLY: return '#7FDBFF';
+        case EnemyTypes.LION: return '#FFDC00';
+        case EnemyTypes.EEL: return '#2ECC40';
+        case EnemyTypes.PUFFER: return '#FF851B';
+        case EnemyTypes.HAMMER: return '#85144b';
+        case EnemyTypes.SNAKE: return '#3D9970';
+        case EnemyTypes.RAY: return '#F012BE';
+        case EnemyTypes.CRAB: return '#FF4136';
+        default: return '#ffffff';
+      }
+    }
+    // Convert a hex colour string to an RGB object
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.substring(1), 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return { r, g, b };
+    }
+
+    /*
+     * Sprite assets
+     * To better emulate the retro Galaga look without directly copying its artwork,
+     * we generated simple 40×40 pixel sprites for the submarine and each enemy type.
+     * Each sprite is symmetrical and uses a limited colour palette reminiscent of
+     * the original game's pixel art, but the designs themselves are original.
+     * The images are embedded as base64 data URIs so the entire game remains
+     * contained in a single HTML file.
+     */
+    const SPRITE_DATA = {
+      snake: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAsklEQVR4nO2WQQ6AIBADxfgiTzzIkw/yxIP4FZ48iBiQ1mSjnZsxbsribusGFltMp+fVO1ptGltMF6FCCGEb3jKNy3n/+UCpPTKKvAl+yrxzOWAnMYGttgb4cv8Vl8St3hXFAP5s/h+cur+cQ9+7h5jv4Men+OBuCAipmnPFJSGK/EIIQeEnkb/kxzWPbgQ/Zc05QMvDOthia6D1mY/8StQo2JC0Tiqwcj4+xTUBivwG2AGMrUO3UVEkRwAAAABJRU5ErkJggg==",
+      jelly: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAi0lEQVR4nO3UwQ2AIBBEUbAWi6QEi7SX9e5BYT4BQuZfza4vG2NKzs0t0wXljvh6fp0ZvUMe/oO9U6GHMtSKU2dSEoDqi9TZJiDBqTuqgT1wyi7pGxxZFbDn9Vp37nHBmRlIM5Bm4FKVO6L3T335CyJgzbXoRfe+4IgMpBlIM5BmIM1AmoE0A2nLAx/XMDbB+BxFWQAAAABJRU5ErkJggg==",
+      lion: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAA+ElEQVR4nO2Y0Q2DMBBDoeo/mYARGKwDMQKDdYJskP7ygSKf7UhXhL/J3cMkvohpepRIbV9b29fmrPlyFTqDOSEtgFdALkibg6MkA/accrgoASIAKiQNGGmsQFKATEN3/KTRrCxGXZk/X7oPtbDWSn2uUkq4X3gPsnDs2hCgAsfWgAEdcEytN/rgcmwcjSjIwREZhta8/2VhtKBcch6Qs5BcTO/gA6gKno3uqEEvEOkdhAGVK5NSK+SgAzJaI/19UHIEBWXA/kbUm7GRw+xhKmaYRuwBo3Mw0lA5/VJQI43VaJInSQ/AkZv3GXU9XTnlHI02jfhHnV4/ilN2w9oJ5d0AAAAASUVORK5CYII=",
+      angler: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAArUlEQVR4nO2XwQ2EMBADDZ1cR5RDCZRDR1dK7o0EJGvvCbTyPEHxjpwECcAUZ8oKal+0Q/AnJ3vOCPknrxdM2YYFazt7vmOT8+UGr+R670aRBEcEVElaMDJYkaQEmYGs5OtvcVhQ2S5mba0GMz4b0YxaDT6BBVUsqGJBFQuqWFAlJJjxExTNqNUgoLXIrK3XIMA1wTZPNxgZqBwLaYtHBqs3Xz6DdwIZnyVjTIcfrmwqP6yq7vAAAAAASUVORK5CYII=",
+      eel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAABLUlEQVR4nN1Y2xGCQAy8Y2zGDiyIsiiIDqzDCvBHHYa7y3OD0f2EI9lJskmOWtZ5K3vcllq+iQOfiTtwKjq+W4KDg+EY+KzbvfRfXMupqR7x6EeQ+CAClK8hwSyobL1Fq5rxP7EEIgUjCM4PpPgFThRoVUv9TccHGbDnIk4xsu1obLVRi1a10n56kbQEI9uOITtDMlSdWAVlsWlKsUUwVpENCXJR0jj09NgL+eFjZlwvzHu/HTrFCME42xZfg5HbjMC2yLm1hhDzXaRii2BQy0f6SaKrL2nBA+e5LoIIwShtkH1QjYDrAXymks4MMzy9SEwELZGwbkCx2/EbDnH9Z4o/kETG2ZrcfS36Pu1OMUUAcdeG1GCPCOpHAGyStFuzbNs+F+u8ocdd+jaTHk9RSIHKeRPzGwAAAABJRU5ErkJggg==",
+      squid: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAx0lEQVR4nO3XyQ7DMAgEULD6/79Mr25aLzBjx6mYWzZ4InakqJBiZlYfq6oy6hZGkSuudS4SGNiDMJAQcAaAIsNAT2MESVmDKxMCRiYSnaIbiLyuyLMuIGNXemtMA1nfNW+t/9gkzOl5aw6BK3Ce2l3gStxsjyZwB26m1zM3yc7pjXp+Ae/A9XqX0Q27czWU1oU7U1so/w0iIiby+U9Cqv3MXXxSjge+Ig/V62201jz3/srxE0wgmgSiSSCaBKJJIJoEokkgmjczD4nRg3pLkwAAAABJRU5ErkJggg==",
+      ray: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAjUlEQVR4nO2VwQ3AIAwDo+4/WLai3z4oihMDKvX9sU9BUcyEEEIIcQxu3ty8MTMvVtBTjClJEewJsSRpE5xFWXA0KcYUS4IRgapkWhAprkimBDOFWcnzlqTyXZm3kCBjK9GMsCDzOiBZIUH2fUUyv78kM6aHZA8FZ8pFO14FV8hFurqCK+V2dgohhPgDNy3yTOXC70tOAAAAAElFTkSuQmCC",
+      crab: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAaklEQVR4nO3W0QnAIAxFUS2O0gkcokN3iE7QXeoCog3PQMB7vgN5xAhJCQCg+BbVYF/5vepwR877yZ4BZv0Pz+YrhA9YLMWz5/jLsjbhJ2j6AEywg4AqAqoIqAofsHDNiEzHgvc0AQDYUANNqxh44LAHvAAAAABJRU5ErkJggg==",
+      hammer: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAdklEQVR4nO3XQQrAIAwFUduT5mi5qV11E+zCfCmBzFtXHCwEHQMAeruyC9197nxvZqm97syiPxGoIlBVPjA9ZqI4drJjJSp/ggSqCFQRqCJQRaCKQBWBqh6Bqzfy7rv5y5HA1e25zY36KHefp37tq/wJlg+E6gEmMxX3wPXRxQAAAABJRU5ErkJggg==",
+      puffer: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAzUlEQVR4nO2Y0Q2EMAxDU3RjMcKNywi3F/xWnChO4qAUxX/9qPMwTQRtQtK+rXu/bt9fY/guDJNIFaBXBfh6uUbBebRcFnGMHNNGFOyvmAFUfQatcNa9KkAPnNUDBmTAWbwgQCac1vMWMAJO451+UA8BI9NDa8ydYAZ9+kUfN+uLGNVV7fQJFqBX6QGHjfDEHBQZN2T6BOcGfGIW3tWYO0GR2BQRbyjBCEjUE37FTEiNl+oMMiC1Huomcf2EG/amv1lIL9qT1RVwVhWgVwcHulBJymkgEgAAAABJRU5ErkJggg==",
+      submarine: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAA5UlEQVR4nO3Wyw2DMAyAYTuDkDG6/62MwSTtpaYhkBDHzkPI/6lCJf4UxAPAmqjPL801ndZCIUwTqQIk0Oo9rN4fjkkTA3MQDaQIWAKQIquB8WC6tPHvq/9ywpqTagciInseewclu1FzrtpjplUsoMZdyV2jGKj58OWsVQTUfn1x1rwFtsBx1s4C38vSDFc6IwnsgSuZdQmkE17b1sq0RzNSyBOwJ47KIQ/AETgqhTzt4AhcbvYO7HlT3BVaXHhg5O5R8aXGmXBh9E3pAObDAfxN2PJVptGzvgdHZEBpBrQsy7JkfQFhXZzRA1JRHQAAAABJRU5ErkJggg=="
+    };
+
+    // Boss sprite definitions. Each boss is represented by a larger pixel art graphic.
+    const BOSS_SPRITE_DATA = {
+      boss1: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAABwklEQVR4nO2bUU7DQAwFXxGnhItwhF4Erlm+gkok6Hptr5105gsJtGsPz5uoTSQAAAAAAAAAAAAAAIDzc6ku4J43fdxG//ZL1xa1lxVhkTVKhdSlG2ZI+4tVMpdsslLcnmyRqYtXituTJfIlY1Gplzwpr57w/8pIoZ+368/P75cP134za0WmMVTgI3n3ze6xivSuFSUxbIS7jewjouoNEWgd25nfZ6wVIdEt8GjJ2+Ot3yXw6PI2PH1MC7Ru+uhgt1xEItfamJWYdh/4LExdyr2jW30f+B/W25sSgZ2xCjSP8JnlSfb+OAOdmASePX0blj5JoBMEOhkW+CzjuzHaLwl0gkAnCHSCQCcIdIJAJ69VG1s+wh8l4tMYK2UJjG62Qp5kENjlaahVjPZbegZGpaYqfVKDi4i3+Up5klHgs4yxpc/yBErzKapOnzQhMCuFVhlZ8tK/E4HfTAmsTmGX9EkNE5jx1EEm0wLPdkWe7ceVwNWj3Gl0N9wjvEpiR3lS0Bl41HGOqDvsIpIhcUtdRvqi6i15Sr+atk/p39NRZMaUpN0HdjsXs+rhXTknvK3phPeFnbQ6p474xjoAAAAAAEzwDQnRl0jTU50mAAAAAElFTkSuQmCC',
+      boss2: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAByElEQVR4nO2bS1LDQAwFBcWCg+YQHIFD5KDswsoQnAoe/Uay3b2FGkudJ49ryhYBAAAAAAAAAAAAAAA4Pi/VBfzh8nEb/t/rZ4va64rQyBqlQOrcC2ZIe8YkmXMEzhS3JllkrsBKcWuSRL5mLCoiveSJpNUT/6sMFHq7vv8WcPlyXc60VmAaYwVuyLtv9qEQpUj3WkES40a428huEVRvjEDl2Fr+nrJWgES/wL0lb42zfp/AvctbcPRhF6i86NaNXbOJRK71g1Fi3nPgSbBt5c7RLX8O/A/l482b/4p6QhpNWMuCfoSPsnE8Q9kf90AnOoFHT9+Cok8S6ASBTsYFnmV8Fwb7JYFOEOgEgU4Q6ASBThDopOQwQUR3hD9KxcFCWQKjm606lRkX2ORtqGkM9lt6D4xKTeWZYPkm4m1+XweqZxljRZ/lCRSxp6g6fSIWgUkp1MpIk6fsr0UC94xNYHEKu6RPpGECU946SMQu8Gg7srEfXwInj3Kn0V3wj/AkiR3liUTdA/c6zgF1x20iCRKX1KWkL6jekrf0y2n7lv49HUUmTEnec2C3+2LWZpex6AN8KxcEX2sGwvfCCezwi3UAAAAAADDwDXxjoaXLeP54AAAAAElFTSuQmCC'
+    };
+    const bossSprites = {};
+    Object.keys(BOSS_SPRITE_DATA).forEach(type => {
+      const img = new Image();
+      img.src = BOSS_SPRITE_DATA[type];
+      bossSprites[type] = img;
+    });
+    // Create Image objects for each enemy type
+    const enemySprites = {};
+    Object.values(EnemyTypes).forEach(type => {
+      const img = new Image();
+      img.src = SPRITE_DATA[type];
+      enemySprites[type] = img;
+    });
+    // Image for player submarine
+    const submarineSprite = new Image();
+    submarineSprite.src = SPRITE_DATA.submarine;
+    class Enemy {
+      constructor(type, formationX, formationY) {
+        this.type = type;
+        // Size of sprite; using 40×40 pixel sprites for consistency
+        this.width = 40;
+        this.height = 40;
+        this.formationX = formationX;
+        this.formationY = formationY;
+        // Starting position off screen top
+        this.x = formationX;
+        this.y = -Math.random() * 200 - 30;
+        this.state = 'entering';
+        this.pathParam = 0;
+        this.speed = 120; // base for entering/dive
+        this.health = (type === EnemyTypes.CRAB || type === EnemyTypes.PUFFER) ? 2 : 1;
+        this.diveCooldown = 2000 + Math.random() * 3000; // ms until next dive
+        this.timeSinceLastDive = 0;
+        this.isCapturing = false; // for crab
+        this.hasCaptured = false;
+      }
+      update(dt) {
+        if (this.state === 'entering') {
+          // Simple vertical path: slide down to formation
+          const dy = this.speed * dt / 1000;
+          this.y += dy;
+          if (this.y >= this.formationY) {
+            this.y = this.formationY;
+            this.state = 'formation';
+          }
+        } else if (this.state === 'formation') {
+          // Oscillate horizontally around formationX
+          const freq = 2; // cycles per second
+          const amp = 10; // px amplitude
+          const now = performance.now();
+          this.x = this.formationX + Math.sin(now / 1000 * freq) * amp;
+          // Countdown to dive
+          this.timeSinceLastDive += dt;
+          if (this.timeSinceLastDive >= this.diveCooldown) {
+            this.timeSinceLastDive = 0;
+            this.diveCooldown = 2000 + Math.random() * 3000;
+            // Choose attack type: some may capture if crab and not already capturing
+            if (this.type === EnemyTypes.CRAB && !this.hasCaptured && Math.random() < 0.4) {
+              this.state = 'capturing';
+            } else {
+              this.state = 'diving';
+              // Setup dive path initial velocities or parameters
+              this.initDive();
+            }
+          }
+        } else if (this.state === 'diving') {
+          this.performDive(dt);
+        } else if (this.state === 'capturing') {
+          this.performCapture(dt);
+        } else if (this.state === 'returning') {
+          // Move back to formation
+          const dx = this.formationX - this.x;
+          const dy = this.formationY - this.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          const speed = 150;
+          if (dist < 5) {
+            this.x = this.formationX;
+            this.y = this.formationY;
+            this.state = 'formation';
+          } else {
+            this.x += (dx / dist) * speed * dt / 1000;
+            this.y += (dy / dist) * speed * dt / 1000;
+          }
+        }
+      }
+      initDive() {
+        // Assign a path function depending on type
+        this.diveTime = 0;
+        this.diveDuration = 3000; // ms
+        // Starting velocities or path
+        switch (this.type) {
+          case EnemyTypes.ANGLER:
+            // Straight downward then wiggle
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 200 * dt / 1000;
+              enemy.x += Math.sin(performance.now() / 200) * 100 * dt / 1000;
+            };
+            break;
+          case EnemyTypes.SQUID:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 220 * dt / 1000;
+              // Release ink bullets occasionally
+              if (Math.random() < 0.02) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 300, 0, false));
+              }
+            };
+            break;
+          case EnemyTypes.JELLY:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 160 * dt / 1000;
+              enemy.x += Math.sin(enemy.y / 40) * 50 * dt / 1000;
+              // Drop electrified bubble projectiles that linger
+              if (Math.random() < 0.015) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 200, 0, false));
+              }
+            };
+            break;
+          case EnemyTypes.LION:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 240 * dt / 1000;
+              // release cluster bullets in burst
+              if (Math.random() < 0.01) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 250, -100, false));
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 250, 0, false));
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 250, 100, false));
+              }
+            };
+            break;
+          case EnemyTypes.EEL:
+            this.diveBehavior = (enemy, dt) => {
+              // Spiral downward
+              enemy.diveTime += dt;
+              const t = enemy.diveTime / enemy.diveDuration;
+              enemy.x += Math.sin(t * Math.PI * 4) * 200 * dt / 1000;
+              enemy.y += 220 * dt / 1000;
+              // Occasionally launch a homing missile that tracks the player. Once the
+              // missile passes the player's y axis it continues straight down.
+              if (Math.random() < 0.008) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 150, 0, false, true));
+              }
+            };
+            break;
+          case EnemyTypes.PUFFER:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 180 * dt / 1000;
+              // When hit once, will release projectiles on second hit (handled in hit)
+            };
+            break;
+          case EnemyTypes.HAMMER:
+            this.diveBehavior = (enemy, dt) => {
+              // Fast straight down attack
+              enemy.y += 320 * dt / 1000;
+              if (Math.random() < 0.005) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 350, 0, false));
+              }
+            };
+            break;
+          case EnemyTypes.SNAKE:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 200 * dt / 1000;
+              enemy.x += Math.sin(enemy.y / 60) * 100 * dt / 1000;
+              if (Math.random() < 0.01) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 200, 0, false));
+              }
+            };
+            break;
+          case EnemyTypes.RAY:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 190 * dt / 1000;
+              if (Math.random() < 0.02) {
+                // Horizontal shock wave bullet across screen
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 0, -200, false));
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 0, 200, false));
+              }
+            };
+            break;
+          case EnemyTypes.CRAB:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 220 * dt / 1000;
+              // Regular crab shot while diving
+              if (Math.random() < 0.015) {
+                enemyBullets.push(new Bullet(enemy.x, enemy.y, 250, 0, false));
+              }
+            };
+            break;
+          default:
+            this.diveBehavior = (enemy, dt) => {
+              enemy.y += 200 * dt / 1000;
+            };
+        }
+      }
+      performDive(dt) {
+        this.diveBehavior(this, dt);
+        // When out of screen or below certain line, return
+        if (this.y > canvas.height + 40) {
+          // Return to top and to formation
+          this.x = -50 + Math.random() * (canvas.width + 100);
+          this.y = -30;
+          this.state = 'returning';
+        }
+      }
+      performCapture(dt) {
+        // Move downward slowly
+        this.y += 150 * dt / 1000;
+        // After capturing attempt, if beyond some distance, return
+        if (!this.isCapturing && Math.random() < 0.02) {
+          // Start capture beam
+          this.isCapturing = true;
+        }
+        // Check for beam collision with player
+        if (this.isCapturing) {
+          // Extend beam downward from this.x,this.y
+          // check player x within beam width
+          const beamWidth = 40;
+          const beamHeight = 200;
+          const beamX = this.x - beamWidth / 2;
+          const beamY = this.y;
+          if (!player.captured) {
+            const px = player.x + player.getWidth() / 2;
+            const py = player.y + player.height / 2;
+            if (px >= beamX && px <= beamX + beamWidth && py >= beamY && py <= beamY + beamHeight) {
+              // Capture player
+              player.captured = true;
+              player.lives = Math.max(0, player.lives - 1);
+              this.hasCaptured = true;
+              this.capturedSubXOffset = px - this.x;
+              // When captured, we keep player's x but reposition
+            }
+          }
+          // draw beam in render function
+        }
+        if (this.y > canvas.height / 2) {
+          // Return to formation after capture attempt
+          this.isCapturing = false;
+          this.state = 'returning';
+        }
+      }
+      draw() {
+        // Draw sprite if available; fallback to coloured rectangle otherwise
+        const img = enemySprites[this.type];
+        if (img && img.complete) {
+          ctx.drawImage(img, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        } else {
+          // Fallback colours if sprite not yet loaded
+          let color;
+          switch (this.type) {
+            case EnemyTypes.ANGLER: color = '#39CCCC'; break;
+            case EnemyTypes.SQUID: color = '#B10DC9'; break;
+            case EnemyTypes.JELLY: color = '#7FDBFF'; break;
+            case EnemyTypes.LION: color = '#FFDC00'; break;
+            case EnemyTypes.EEL: color = '#2ECC40'; break;
+            case EnemyTypes.PUFFER: color = '#FF851B'; break;
+            case EnemyTypes.HAMMER: color = '#85144b'; break;
+            case EnemyTypes.SNAKE: color = '#3D9970'; break;
+            case EnemyTypes.RAY: color = '#F012BE'; break;
+            case EnemyTypes.CRAB: color = '#FF4136'; break;
+            default: color = '#AAAAAA';
+          }
+          ctx.fillStyle = color;
+          ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        }
+        // Draw captured submarine attached to crab (if any)
+        if (this.hasCaptured && this.type === EnemyTypes.CRAB && this.state === 'formation') {
+          // Draw captured submarine sprite above this enemy
+          const subWidth = player.width;
+          const subHeight = player.height;
+          const subX = this.x + this.capturedSubXOffset - subWidth / 2;
+          const subY = this.y - this.height / 2 - subHeight - 5;
+          if (submarineSprite.complete) {
+            ctx.drawImage(submarineSprite, subX, subY, subWidth, subHeight);
+          } else {
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(subX, subY, subWidth, subHeight);
+          }
+        }
+        // Draw capture beam if capturing
+        if (this.state === 'capturing' && this.isCapturing) {
+          ctx.strokeStyle = 'rgba(0,255,255,0.6)';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(this.x, this.y + 200);
+          ctx.stroke();
+        }
+      }
+      hit() {
+        this.health -= 1;
+        if (this.health <= 0) {
+          // Pufferfish release projectiles when destroyed if partially inflated
+          if (this.type === EnemyTypes.PUFFER) {
+            // release spines in all directions
+            for (let i = 0; i < 6; i++) {
+              const angle = (Math.PI * 2 / 6) * i;
+              const dx = Math.cos(angle) * 150;
+              const dy = Math.sin(angle) * 150;
+              enemyBullets.push(new Bullet(this.x, this.y, dy, dx, false));
+            }
+          }
+          // If crab had captured sub and is killed while diving, rescue player
+          if (this.type === EnemyTypes.CRAB && this.hasCaptured) {
+            // Rescue
+            player.dualMode = true;
+            player.captured = false;
+            this.hasCaptured = false;
+            score += 1000; // rescue bonus
+          }
+          // Trigger a pop animation when the enemy is destroyed
+          {
+            const colHex = getEnemyColor(this.type);
+            const { r, g, b } = hexToRgb(colHex);
+            // Each pop effect will expand to maxRadius over duration
+            pops.push({
+              x: this.x,
+              y: this.y,
+              age: 0,
+              duration: 400,
+              maxRadius: 30,
+              r,
+              g,
+              b
+            });
+          }
+          this.state = 'dead';
+        } else {
+          // For pufferfish: change color or enlarge maybe - omitted; but track
+        }
+      }
+    }
+
+    // Boss class defines behaviours for special boss waves that occur every 5th wave.
+    // Each boss has unique movement and attack patterns. When its health drops
+    // below half, the boss becomes more aggressive (faster attacks, additional
+    // patterns).
+    class Boss {
+      constructor(type) {
+        this.type = type; // 'boss1' or 'boss2'
+        // Set size and health based on type
+        if (type === 'boss1') {
+          this.width = 120;
+          this.height = 120;
+          this.maxHealth = 100;
+          this.speed = 80;
+        } else {
+          this.width = 140;
+          this.height = 140;
+          this.maxHealth = 120;
+          this.speed = 70;
+        }
+        this.health = this.maxHealth;
+        // Position at top center
+        this.x = canvas.width / 2;
+        this.y = 120;
+        this.moveDir = 1;
+        // Timers for attack patterns
+        this.fireTimer = 0;
+        this.radialTimer = 0;
+        this.spawnTimer = 0;
+      }
+      update(dt) {
+        // Horizontal movement for both bosses
+        this.x += this.moveDir * this.speed * dt / 1000;
+        // Bounce off screen edges
+        if (this.x - this.width / 2 < 0) {
+          this.x = this.width / 2;
+          this.moveDir = 1;
+        } else if (this.x + this.width / 2 > canvas.width) {
+          this.x = canvas.width - this.width / 2;
+          this.moveDir = -1;
+        }
+        // Attack patterns vary by boss type
+        if (this.type === 'boss1') {
+          this.updateBoss1(dt);
+        } else {
+          this.updateBoss2(dt);
+        }
+      }
+      updateBoss1(dt) {
+        // Aggressive flag: below half health
+        const aggressive = this.health <= this.maxHealth / 2;
+        // Fire downward barrages
+        this.fireTimer += dt;
+        const fireInterval = aggressive ? 600 : 1000;
+        if (this.fireTimer >= fireInterval) {
+          this.fireTimer = 0;
+          // Determine number of bullet columns based on aggressiveness
+          const count = aggressive ? 5 : 3;
+          const spacing = this.width / (count + 1);
+          for (let i = 0; i < count; i++) {
+            const bx = this.x - this.width / 2 + spacing * (i + 1);
+            const by = this.y + this.height / 2;
+            const speed = aggressive ? 350 : 250;
+            enemyBullets.push(new Bullet(bx, by, speed, 0, false));
+          }
+        }
+        // Radial bursts
+        this.radialTimer += dt;
+        const radialInterval = aggressive ? 3000 : 5000;
+        if (this.radialTimer >= radialInterval) {
+          this.radialTimer = 0;
+          // Number of bullets in burst
+          const count = aggressive ? 12 : 8;
+          const speed = aggressive ? 300 : 220;
+          for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 / count) * i;
+            const dx = Math.cos(angle) * speed;
+            const dy = Math.sin(angle) * speed;
+            enemyBullets.push(new Bullet(this.x, this.y, dy, dx, false));
+          }
+        }
+      }
+      updateBoss2(dt) {
+        const aggressive = this.health <= this.maxHealth / 2;
+        // Vertical oscillation (sine wave)
+        const now = performance.now();
+        const amplitude = aggressive ? 70 : 50;
+        const freq = aggressive ? 0.8 : 0.5; // oscillations per second
+        this.y = 120 + Math.sin(now / 1000 * 2 * Math.PI * freq) * amplitude;
+        // Bomb barrages
+        this.fireTimer += dt;
+        const fireInterval = aggressive ? 700 : 1300;
+        if (this.fireTimer >= fireInterval) {
+          this.fireTimer = 0;
+          // Drop bombs (slow, heavy bullets). Spawn bombs at three positions across width
+          const count = aggressive ? 5 : 3;
+          const spacing = this.width / (count + 1);
+          for (let i = 0; i < count; i++) {
+            const bx = this.x - this.width / 2 + spacing * (i + 1);
+            const by = this.y + this.height / 2;
+            const dy = aggressive ? 250 : 180;
+            const dx = (i % 2 === 0 && aggressive) ? (i % 4 === 0 ? -80 : 80) : 0;
+            enemyBullets.push(new Bullet(bx, by, dy, dx, false));
+          }
+        }
+        // Summon minions
+        this.spawnTimer += dt;
+        const spawnInterval = aggressive ? 4500 : 7000;
+        if (this.spawnTimer >= spawnInterval) {
+          this.spawnTimer = 0;
+          // Spawn a few minion enemies beneath the boss
+          const minionCount = aggressive ? 4 : 2;
+          for (let i = 0; i < minionCount; i++) {
+            // Choose a random enemy type (excluding bosses)
+            const types = Object.keys(EnemyTypes);
+            const type = types[Math.floor(Math.random() * types.length)];
+            const e = new Enemy(EnemyTypes[type], this.x + (Math.random() - 0.5) * this.width, this.y + this.height / 2 + 20);
+            // Immediately start diving
+            e.state = 'diving';
+            e.initDive();
+            enemies.push(e);
+          }
+        }
+      }
+      draw() {
+        // Draw boss sprite
+        const img = bossSprites[this.type];
+        if (img && img.complete) {
+          ctx.drawImage(img, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        } else {
+          // Fallback rectangle with colour
+          ctx.fillStyle = this.type === 'boss1' ? '#55007F' : '#006778';
+          ctx.fillRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
+        }
+        // Draw health bar at top centre of screen
+        const barWidth = 250;
+        const barHeight = 14;
+        const hx = (canvas.width - barWidth) / 2;
+        const hy = 20;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(hx, hy, barWidth, barHeight);
+        const healthRatio = Math.max(0, this.health) / this.maxHealth;
+        ctx.fillStyle = '#FF4136';
+        ctx.fillRect(hx, hy, barWidth * healthRatio, barHeight);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.strokeRect(hx, hy, barWidth, barHeight);
+      }
+    }
+
+    function spawnWave(level) {
+      enemies = [];
+      // Determine formation grid; 8 columns x 5 rows
+      const cols = 8;
+      const rows = 5;
+      const spacingX = canvas.width / (cols + 1);
+      const spacingY = 60;
+      const startY = 80;
+      // Determine enemy types per row; we cycle through defined list
+      const typesForLevel = [
+        EnemyTypes.ANGLER,
+        EnemyTypes.SQUID,
+        EnemyTypes.JELLY,
+        EnemyTypes.LION,
+        EnemyTypes.EEL,
+        EnemyTypes.PUFFER,
+        EnemyTypes.HAMMER,
+        EnemyTypes.SNAKE,
+        EnemyTypes.RAY,
+        EnemyTypes.CRAB
+      ];
+      // For each row, choose type index based on level and row
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const formationX = spacingX * (col + 1);
+          const formationY = startY + spacingY * row;
+          // Determine type index; cycle through types based on level
+          const typeIndex = (row + level - 1) % typesForLevel.length;
+          const type = typesForLevel[typeIndex];
+          enemies.push(new Enemy(type, formationX, formationY));
+        }
+      }
+    }
+
+    function spawnChallengeStage() {
+      enemies = [];
+      // 40 enemies in swirling pattern; no bullets
+      const total = 40;
+      for (let i = 0; i < total; i++) {
+        // use a path param to compute starting positions
+        const angle = (i / total) * Math.PI * 2;
+        const formationX = canvas.width / 2 + Math.cos(angle) * 200;
+        const formationY = 80 + (i % 10) * 40;
+        const type = EnemyTypes.RAY; // use one type for challenge stage to differentiate; but they won't shoot
+        const enemy = new Enemy(type, formationX, formationY);
+        // override dive/formation to challenge path; we will treat as diving path only; no bullets
+        enemy.state = 'diving';
+        enemy.diveBehavior = (enemyObj, dt) => {
+          // move in sine wave across screen from left to right
+          const t = (performance.now() + i * 100) / 1000;
+          enemyObj.x = canvas.width / 2 + Math.cos(t * 2) * 300;
+          enemyObj.y = 100 + Math.sin(t) * 100 + i * 2;
+        };
+        enemies.push(enemy);
+      }
+    }
+
+    /**
+     * Spawn a boss for a boss wave. Boss waves occur every 5th wave. The type
+     * alternates between boss1 and boss2 so that wave 5 has boss1, wave 10
+     * has boss2, wave 15 has boss1 again, etc. When a boss is spawned the
+     * current enemy array is cleared and any pending enemy bullets are removed.
+     * A new Boss instance is stored in the global `boss` variable.
+     *
+     * @param {number} level The current wave number; used to determine boss type.
+     */
+    function spawnBoss(level) {
+      // Clear existing enemies and enemy bullets so the boss can take the stage
+      enemies = [];
+      enemyBullets = [];
+      // Determine the boss type based on the wave number. We alternate
+      // between boss1 and boss2 on successive multiples of five. For
+      // example: wave 5 → boss1, wave 10 → boss2, wave 15 → boss1, etc.
+      const bossCycleIndex = Math.floor(level / 5) % 2;
+      const type = bossCycleIndex === 1 ? 'boss1' : 'boss2';
+      boss = new Boss(type);
+    }
+
+    function resetGame() {
+      player = new Player();
+      bullets = [];
+      enemyBullets = [];
+      powerUps = [];
+      pops = [];
+      enemies = [];
+      score = 0;
+      level = 1;
+      // Ensure no boss is active when starting a new game
+      boss = null;
+      // Show wave banner at the beginning of a new game
+      waveAnnouncementTime = 2500;
+      spawnWave(level);
+    }
+
+    // Collision detection
+    function rectsIntersect(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function update(dt) {
+      // Only update the game world when actively playing or in auto mode (home screen background)
+      if (!(state === STATES.PLAYING || autoMode)) return;
+      // Decrease wave announcement timer
+      if (waveAnnouncementTime > 0) {
+        waveAnnouncementTime -= dt;
+        if (waveAnnouncementTime < 0) waveAnnouncementTime = 0;
+      }
+      // Determine world time factor: if the slow‑time power‑up is active, slow down enemy/projectile updates
+      const worldDt = player && player.slowTime > 0 ? dt * 0.5 : dt;
+      // Update player (always uses real dt so the submarine does not slow down)
+      player.update(dt);
+      // Update bullets using slowed time if applicable
+      bullets.forEach(b => b.update(worldDt));
+      bullets = bullets.filter(b => !b.offScreen());
+      // Update enemy bullets
+      enemyBullets.forEach(b => b.update(worldDt));
+      enemyBullets = enemyBullets.filter(b => !b.offScreen());
+      // Update power‑ups (falling)
+      powerUps.forEach(p => p.update(worldDt));
+      powerUps = powerUps.filter(p => !p.offScreen());
+      // Update enemies
+      enemies.forEach(e => e.update(worldDt));
+      // Update boss if present
+      if (boss) {
+        boss.update(worldDt);
+      }
+
+      // When running in auto mode (home screen), move and shoot the submarine automatically.
+      if (autoMode) {
+        // Move horizontally back and forth across the screen
+        const autoSpeed = 150; // pixels per second
+        player.x += autoDir * autoSpeed * dt / 1000;
+        // Reverse direction when hitting screen edges
+        const pWidth = player.getWidth();
+        if (player.x <= 0) {
+          player.x = 0;
+          autoDir = 1;
+        } else if (player.x + pWidth >= canvas.width) {
+          player.x = canvas.width - pWidth;
+          autoDir = -1;
+        }
+        // Fire bubbles at regular intervals
+        autoShootTimer += dt;
+        if (autoShootTimer > 600) {
+          player.shoot();
+          autoShootTimer = 0;
+        }
+        // Prevent capture and death during auto mode
+        player.captured = false;
+        player.lives = Math.max(player.lives, 3);
+        // Maintain a shield so stray bullets don't end auto play
+        player.invincibleTime = Math.max(player.invincibleTime, 500);
+      }
+
+      // Update pop animations: expand radius and track age
+      pops.forEach(pop => {
+        pop.age += dt;
+      });
+      // Remove completed pops
+      pops = pops.filter(pop => pop.age < pop.duration);
+      // Collision: player bullets vs boss (if present)
+      if (boss) {
+        bullets = bullets.filter(b => {
+          if (!b.fromPlayer) return true;
+          // bounding box collision with boss. Use bullet dimensions for
+          // accurate collision with larger missiles.
+          if (rectsIntersect(b.x - b.width / 2, b.y - b.height / 2, b.width, b.height,
+              boss.x - boss.width / 2, boss.y - boss.height / 2,
+              boss.width, boss.height)) {
+            // Damage the boss
+            boss.health -= 1;
+            // Award some points per hit on the boss
+            score += 10;
+            // Create a small pop effect at the impact location
+            const bx = b.x;
+            const by = b.y;
+            const colour = boss.type === 'boss1' ? { r: 85, g: 0, b: 127 } : { r: 0, g: 103, b: 120 };
+            pops.push({
+              x: bx,
+              y: by,
+              age: 0,
+              duration: 400,
+              maxRadius: 25,
+              r: colour.r,
+              g: colour.g,
+              b: colour.b
+            });
+            return false;
+          }
+          return true;
+        });
+        // If boss defeated
+        if (boss && boss.health <= 0) {
+          // Award big bonus for defeating boss
+          score += 2000;
+          // Create a large pop explosion at boss location
+          const colour = boss.type === 'boss1' ? { r: 85, g: 0, b: 127 } : { r: 0, g: 103, b: 120 };
+          pops.push({
+            x: boss.x,
+            y: boss.y,
+            age: 0,
+            duration: 800,
+            maxRadius: 80,
+            r: colour.r,
+            g: colour.g,
+            b: colour.b
+          });
+          boss = null;
+        }
+      }
+      // Collision: player bullets vs enemies
+      bullets = bullets.filter(b => {
+        if (!b.fromPlayer) return true;
+        let hit = false;
+        enemies.forEach(enemy => {
+          if (enemy.state !== 'dead' && rectsIntersect(
+              b.x - b.width / 2, b.y - b.height / 2, b.width, b.height,
+              enemy.x - enemy.width / 2, enemy.y - enemy.height / 2, enemy.width, enemy.height)) {
+            hit = true;
+            // scoring: diving vs formation
+            const diveBonus = (enemy.state === 'diving') ? 2 : 1;
+            // Base score per type
+            let base;
+            switch (enemy.type) {
+              case EnemyTypes.ANGLER: base = 50; break;
+              case EnemyTypes.SQUID: base = 80; break;
+              case EnemyTypes.JELLY: base = 100; break;
+              case EnemyTypes.LION: base = 100; break;
+              case EnemyTypes.EEL: base = 80; break;
+              case EnemyTypes.PUFFER: base = (enemy.health === 2 ? 150 : 500); break;
+              case EnemyTypes.HAMMER: base = 150; break;
+              case EnemyTypes.SNAKE: base = 100; break;
+              case EnemyTypes.RAY: base = 120; break;
+              case EnemyTypes.CRAB: base = 150; break;
+              default: base = 50;
+            }
+            score += base * diveBonus;
+            enemy.hit();
+          }
+        });
+        return !hit;
+      });
+
+      // Collision: player bullets vs enemy bullets (including tracking missiles).
+      // When they collide, both projectiles are destroyed and a small pop
+      // animation plays. We iterate through the lists and mark bullets for
+      // removal to avoid modifying arrays while iterating.
+      if (bullets.length > 0 && enemyBullets.length > 0) {
+        const bulletsToRemove = new Set();
+        const enemyBulletsToRemove = new Set();
+        for (let i = 0; i < bullets.length; i++) {
+          const pb = bullets[i];
+          if (!pb.fromPlayer) continue;
+          for (let j = 0; j < enemyBullets.length; j++) {
+            const eb = enemyBullets[j];
+            // Only consider enemy bullets (fromPlayer === false)
+            if (rectsIntersect(
+                pb.x - pb.width / 2, pb.y - pb.height / 2, pb.width, pb.height,
+                eb.x - eb.width / 2, eb.y - eb.height / 2, eb.width, eb.height)) {
+              bulletsToRemove.add(i);
+              enemyBulletsToRemove.add(j);
+              // Pop effect at collision point
+              pops.push({
+                x: (pb.x + eb.x) / 2,
+                y: (pb.y + eb.y) / 2,
+                age: 0,
+                duration: 250,
+                maxRadius: 20,
+                r: 255,
+                g: 255,
+                b: 255
+              });
+              break;
+            }
+          }
+        }
+        if (bulletsToRemove.size > 0) {
+          bullets = bullets.filter((b, idx) => !bulletsToRemove.has(idx));
+        }
+        if (enemyBulletsToRemove.size > 0) {
+          enemyBullets = enemyBullets.filter((b, idx) => !enemyBulletsToRemove.has(idx));
+        }
+      }
+      // Collision: enemy bullets vs player
+      enemyBullets = enemyBullets.filter(b => {
+        // In auto mode we ignore collisions with the player
+        if (autoMode) return true;
+        if (player.captured) return true;
+        const px = player.x;
+        const pw = player.getWidth();
+        // Use bullet dimensions for accurate collision detection
+        if (rectsIntersect(b.x - b.width / 2, b.y - b.height / 2, b.width, b.height, px, player.y, pw, player.height)) {
+          // If invincibility active, absorb bullet without damage
+          if (player.invincibleTime > 0) {
+            // reset remaining time to zero to end shield immediately on hit
+            player.invincibleTime = 0;
+          } else {
+            player.lives -= 1;
+            if (player.lives <= 0) {
+              // Game over
+              triggerGameOver();
+            }
+          }
+          return false;
+        }
+        return true;
+      });
+      // Collision: player vs enemies
+      enemies.forEach(enemy => {
+        // Skip collision detection when in auto mode (home screen)
+        if (autoMode) return;
+        if (enemy.state !== 'dead' && !player.captured) {
+          const pw = player.getWidth();
+          if (rectsIntersect(enemy.x - enemy.width / 2, enemy.y - enemy.height / 2, enemy.width, enemy.height, player.x, player.y, pw, player.height)) {
+            // If invincibility active, absorb collision and destroy enemy
+            if (player.invincibleTime > 0) {
+              player.invincibleTime = 0;
+              enemy.hit();
+            } else {
+              player.lives -= 1;
+              enemy.hit();
+              if (player.lives <= 0) triggerGameOver();
+            }
+          }
+        }
+      });
+      // Collision: player vs powerUps
+      powerUps = powerUps.filter(p => {
+        if (!player.captured && rectsIntersect(p.x - p.width / 2, p.y - p.height / 2, p.width, p.height, player.x, player.y, player.getWidth(), player.height)) {
+          applyPowerUp(p.type);
+          return false;
+        }
+        return true;
+      });
+      // Magnet effect removed: no attraction to power‑ups
+      // Remove dead enemies
+      enemies = enemies.filter(e => e.state !== 'dead');
+      // Drop power-ups occasionally when enemy dies (handled here? Actually we removed enemy bullet loops; we need to spawn powerups)
+      // We'll spawn chance when hitting enemy in hit() but easier: We'll record spawn after bullet; but for simplicity we spawn random chance here - not replicating exactly when kill; but we can't rely on detection of kill separately.
+      // Instead we spawn in hit() before removal: we can check there, but we can't easily spawn due to our bullet filter; I'll handle outside: after update we will spawn random power-up occasionally.
+      // Randomly spawn a power‑up at the top of the screen. Use only the four new power‑up types.
+      if (Math.random() < 0.005) {
+        const types = ['speed', 'rapid', 'slow', 'invincible'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const xPos = Math.random() * canvas.width;
+        powerUps.push(new PowerUp(xPos, 0, type));
+      }
+      // Check if the current wave (or boss fight) is cleared. A wave is
+      // considered cleared when there are no regular enemies left and no boss
+      // is active. We handle boss waves separately: the boss's death is
+      // processed above by setting boss = null and creating an explosion.
+      if (!boss && enemies.length === 0) {
+        // If the wave that just ended was a challenge stage (multiples of 4 but not
+        // also multiples of 5), award a bonus. Boss waves occur at multiples of 5
+        // and should not be treated as challenge stages even though 20 is divisible by 4.
+        if (level % 4 === 0 && level % 5 !== 0) {
+          score += 3000;
+        }
+        // Advance to the next wave
+        level += 1;
+        // Display the wave banner at the start of the new wave
+        waveAnnouncementTime = 2500;
+        // Determine what to spawn based on the new wave number. Boss waves
+        // occur every 5th wave. Challenge stages occur every 4th wave.
+        if (level % 5 === 0) {
+          spawnBoss(level);
+        } else if (level % 4 === 0) {
+          spawnChallengeStage();
+        } else {
+          spawnWave(level);
+        }
+      }
+    }
+
+    function applyPowerUp(type) {
+      // Activate the appropriate power‑up by setting its timer. If a timer is already active,
+      // resetting it replaces the remaining duration with the full duration; this keeps the
+      // system simple.
+      switch (type) {
+        case 'speed':
+          // Fast movement for 6 seconds
+          player.speedBoostTime = 6000;
+          break;
+        case 'rapid':
+          // Rapid fire (reduced shot cooldown) for 7 seconds
+          player.rapidFireTime = 7000;
+          break;
+        case 'slow':
+          // Slow time: enemies and projectiles move at half speed for 6 seconds
+          player.slowTime = 6000;
+          break;
+        case 'invincible':
+          // Temporary invincibility for 5 seconds
+          player.invincibleTime = 5000;
+          break;
+      }
+    }
+
+    function draw() {
+      // Clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Background gradient already applied by CSS; we can overlay additional details like bubbles
+      // Draw background bubbles for effect
+      for (let i = 0; i < 20; i++) {
+        const bx = (i * 83 + (performance.now()/10) % canvas.width);
+        const by = (i * 53 + (performance.now()/20) % canvas.height);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.beginPath();
+        ctx.arc(bx % canvas.width, by % canvas.height, 2 + (i % 3), 0, Math.PI*2);
+        ctx.fill();
+      }
+      // Draw player
+      player.draw();
+      // Draw bullets
+      bullets.forEach(b => b.draw());
+      enemyBullets.forEach(b => b.draw());
+      // Draw powerUps
+      powerUps.forEach(p => p.draw());
+      // Draw enemies
+      enemies.forEach(e => e.draw());
+      // Draw boss, if present
+      if (boss) {
+        boss.draw();
+      }
+
+      // Draw pop effects for destroyed enemies
+      pops.forEach(pop => {
+        const progress = pop.age / pop.duration;
+        const radius = pop.maxRadius * progress;
+        const alpha = 1 - progress;
+        ctx.fillStyle = `rgba(${pop.r}, ${pop.g}, ${pop.b}, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(pop.x, pop.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      // HUD
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Score: ' + score, 10, 20);
+      ctx.fillText('High: ' + (highScores[0] ? highScores[0].score : 0), 10, 40);
+      ctx.fillText('Lives: ' + player.lives, 10, 60);
+      ctx.fillText('Wave: ' + level, 10, 80);
+      // Display active power‑up timers. Start at y=100 and increment for each active effect.
+      let timerY = 100;
+      const addTimer = (label, time) => {
+        ctx.fillText(label + ': ' + (time / 1000).toFixed(1) + 's', 10, timerY);
+        timerY += 20;
+      };
+      if (player.invincibleTime > 0) addTimer('Invincible', player.invincibleTime);
+      if (player.speedBoostTime > 0) addTimer('Speed', player.speedBoostTime);
+      if (player.rapidFireTime > 0) addTimer('Rapid', player.rapidFireTime);
+      if (player.slowTime > 0) addTimer('Slow', player.slowTime);
+
+      // Draw wave announcement banner when active
+      if (waveAnnouncementTime > 0) {
+        ctx.save();
+        ctx.font = '32px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        const text = 'Wave - ' + level;
+        const metrics = ctx.measureText(text);
+        const textX = (canvas.width - metrics.width) / 2;
+        const textY = 120;
+        ctx.fillText(text, textX, textY);
+        ctx.restore();
+      }
+    }
+
+    function gameLoop() {
+      const now = performance.now();
+      const dt = now - lastUpdateTime;
+      lastUpdateTime = now;
+      update(dt);
+      draw();
+      // Always continue the animation loop so the background remains active
+      requestAnimationFrame(gameLoop);
+    }
+
+    function triggerGameOver() {
+      state = STATES.GAMEOVER;
+      overlay.classList.add('visible');
+      homeScreen.style.display = 'none';
+      pauseScreen.style.display = 'none';
+      gameoverScreen.style.display = 'block';
+      // Show final score
+      finalScoreDiv.textContent = 'Final Score: ' + score;
+      // Check if qualifies high score
+      let qualifies = false;
+      if (highScores.length < MAX_HIGH_SCORES || score > highScores[highScores.length - 1].score) {
+        qualifies = true;
+      }
+      if (qualifies) {
+        leaderboardPrompt.style.display = 'block';
+      } else {
+        leaderboardPrompt.style.display = 'none';
+      }
+    }
+
+    // Input events
+    window.addEventListener('keydown', (e) => {
+      if (state === STATES.PLAYING) {
+        if (e.code === 'ArrowLeft') keys.left = true;
+        if (e.code === 'ArrowRight') keys.right = true;
+        if (e.code === 'Space') keys.shoot = true;
+        if (e.code === 'Escape') {
+          // pause
+          state = STATES.PAUSED;
+          overlay.classList.add('visible');
+          homeScreen.style.display = 'none';
+          gameoverScreen.style.display = 'none';
+          pauseScreen.style.display = 'block';
+        }
+      } else if (state === STATES.PAUSED) {
+        if (e.code === 'Escape') {
+          resumeGame();
+        }
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'ArrowLeft') keys.left = false;
+      if (e.code === 'ArrowRight') keys.right = false;
+      if (e.code === 'Space') keys.shoot = false;
+    });
+
+    // Button events
+    playBtn.addEventListener('click', () => {
+      startGame();
+    });
+    resumeBtn.addEventListener('click', () => {
+      resumeGame();
+    });
+    restartBtn.addEventListener('click', () => {
+      resetGame();
+      resumeGame();
+    });
+    homeBtn.addEventListener('click', () => {
+      goHome();
+    });
+    retryBtn.addEventListener('click', () => {
+      overlay.classList.remove('visible');
+      resetGame();
+      state = STATES.PLAYING;
+      lastUpdateTime = performance.now();
+      gameLoop();
+    });
+    gameoverHomeBtn.addEventListener('click', () => {
+      goHome();
+    });
+
+    function startGame() {
+      overlay.classList.remove('visible');
+      resetGame();
+      state = STATES.PLAYING;
+      autoMode = false;
+      lastUpdateTime = performance.now();
+      // gameLoop is always running, so no need to restart here
+    }
+
+    function resumeGame() {
+      overlay.classList.remove('visible');
+      state = STATES.PLAYING;
+      autoMode = false;
+      lastUpdateTime = performance.now();
+      // gameLoop continues; nothing else needed
+    }
+
+    function goHome() {
+      state = STATES.HOME;
+      autoMode = true;
+      overlay.classList.add('visible');
+      homeScreen.style.display = 'block';
+      pauseScreen.style.display = 'none';
+      gameoverScreen.style.display = 'none';
+      updateScoreboard();
+    }
+
+    // Initials form submit
+    initialsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = initialsInput.value.trim().toUpperCase().substring(0,3) || 'AAA';
+      // Insert into high score list
+      highScores.push({ name, score });
+      highScores.sort((a,b) => b.score - a.score);
+      highScores = highScores.slice(0, MAX_HIGH_SCORES);
+      saveHighScores();
+      initialsInput.value = '';
+      leaderboardPrompt.style.display = 'none';
+      updateScoreboard();
+    });
+
+    // Gameover overlay resets high score display after saving; pressing retry or home resets
+
+    // Initialize high scores and show home screen
+    loadHighScores();
+    updateScoreboard();
+    overlay.classList.add('visible');
+    homeScreen.style.display = 'block';
+    pauseScreen.style.display = 'none';
+    gameoverScreen.style.display = 'none';
+    // Set up an initial wave for the home screen simulation
+    resetGame();
+    // Start the animation loop immediately so the background plays on the home screen
+    lastUpdateTime = performance.now();
+    gameLoop();
+  })();
+  </script>
+</body>
+</html>
