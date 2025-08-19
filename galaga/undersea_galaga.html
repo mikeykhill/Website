@@ -269,10 +269,21 @@ body.light #galaga-btn:hover {
       localStorage.setItem('underseaGalagaHighScores', JSON.stringify(highScores));
     }
 
+    // Escape HTML special characters to prevent XSS
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/`/g, '&#96;');
+    }
+
     function updateScoreboard() {
       let html = '<table><tr><th>Rank</th><th>Initials</th><th>Score</th></tr>';
       highScores.forEach((entry, i) => {
-        html += `<tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`;
+        html += `<tr><td>${i + 1}</td><td>${escapeHTML(entry.name)}</td><td>${entry.score}</td></tr>`;
       });
       html += '</table>';
       scoreboardDiv.innerHTML = html;
