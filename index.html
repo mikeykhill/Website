@@ -4,51 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MH Servers - Family Access</title>
+
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
+    /* =========================================================
+       THEME TOKENS
+       ========================================================= */
     :root {
-      /* Colors for dark mode -*/
+      /* Dark */
       --bg-dark: #121212;
       --text-dark: #eee;
-      --button-bg-dark: #1f1f1f;
-      --button-border-dark: #444;
-      --button-hover-bg-dark: #333;
-      --button-hover-border-dark: #888;
-      --tooltip-bg-dark: #222;
-      --tooltip-text-dark: #eee;
+      --button-bg-dark: rgba(255, 255, 255, 0.08);
+      --button-border-dark: rgba(102, 204, 255, 0.25);
+      --button-hover-bg-dark: rgba(255, 255, 255, 0.12);
+      --button-hover-border-dark: rgba(153, 221, 255, 0.6);
 
-      /* Colors for light mode */
+      /* Light */
       --bg-light: #f0f4f8;
       --text-light: #222;
-      --button-bg-light: #f5f7fa;
-      --button-border-light: #bbb;
-      --button-hover-bg-light: #e0e6f0;
-      --button-hover-border-light: #999;
-      --tooltip-bg-light: #ddd;
-      --tooltip-text-light: #222;
+      --button-bg-light: rgba(0, 0, 0, 0.04);
+      --button-border-light: rgba(51, 102, 153, 0.25);
+      --button-hover-bg-light: rgba(0, 0, 0, 0.06);
+      --button-hover-border-light: rgba(51, 102, 153, 0.45);
+
+      /* Accents */
+      --accent-1: #67d3ff;
+      --accent-2: #6aa8ff;
+      --accent-3: #8a6bff;
     }
 
-    /* Base styles */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow-y: hidden; /* Prevent vertical scrollbar */
-    }
+    /* =========================================================
+       BASE LAYOUT
+       ========================================================= */
+    html, body { margin: 0; padding: 0; height: 100%; overflow-y: hidden; }
     body {
       background-color: var(--bg-dark);
       color: var(--text-dark);
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      display: flex; flex-direction: column; align-items: center;
       padding: 30px 20px 60px;
       transition: background-color 0.5s, color 0.5s;
-      overflow-x: hidden;
-      position: relative;
+      overflow-x: hidden; position: relative;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
     }
     body.light {
@@ -57,444 +57,314 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
 
-    h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin-bottom: 5px;
-      text-align: center;
-      user-select: none;
-    }
+    /* Headings / intro text */
+    h1 { font-weight: 700; font-size: 2.5rem; margin-bottom: 5px; text-align: center; user-select: none; }
+    p#greeting { font-weight: 600; font-size: 1.3rem; margin: 0 0 6px; text-align: center; color: #66ccff; user-select: none; text-shadow: 0 0 6px #3399ff; }
+    p#welcome { font-weight: 400; font-size: 1.2rem; margin: 0 0 30px; text-align: center; max-width: 600px; user-select: none; }
 
-    p#greeting {
-      font-weight: 600;
-      font-size: 1.3rem;
-      margin: 0 0 6px 0;
-      text-align: center;
-      color: #66ccff;
-      user-select: none;
-      text-shadow: 0 0 6px #3399ff;
-    }
-
-    p#welcome {
-      font-weight: 400;
-      font-size: 1.2rem;
-      margin-top: 0;
-      margin-bottom: 30px;
-      text-align: center;
-      max-width: 600px;
-      user-select: none;
-    }
-
+    /* =========================================================
+       CTA BUTTONS GRID
+       ========================================================= */
     .button-container {
-      display: flex;
-      gap: 30px;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(240px, 1fr));
+      gap: 22px;
       width: 100%;
-      max-width: 600px;
+      max-width: 680px;
       margin-bottom: 40px;
+      perspective: 1000px; /* helps subtle 3D tilt */
+    }
+    @media (max-width: 560px) {
+      .button-container { grid-template-columns: 1fr; max-width: 420px; }
     }
 
+    .service-group { display: flex; flex-direction: column; align-items: center; }
+
+    /* ---------- Enhanced “Glass Card” Button ---------- */
     .service-button {
-  background-color: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 8px 16px;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  color: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: auto;
-  min-width: 200px;
-  justify-content: center;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-    body.light .service-button {
-      background-color: var(--button-bg-light);
-      border-color: var(--button-border-light);
-      color: var(--text-light);
-      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      --tilt-x: 0deg;   /* set via JS on pointer move */
+      --tilt-y: 0deg;   /* set via JS on pointer move */
+      position: relative;
+      isolation: isolate;
+      border: 1px solid var(--button-border-dark);
+      background: var(--button-bg-dark);
+      color: inherit;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 16px 18px;
+      min-height: 78px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      font-size: 1rem; font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+      box-shadow:
+        0 10px 20px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      transition:
+        transform 220ms ease,
+        box-shadow 220ms ease,
+        background-color 200ms ease,
+        border-color 200ms ease,
+        color 200ms ease;
+      overflow: hidden;
     }
+    body.light .service-button {
+      border-color: var(--button-border-light);
+      background: var(--button-bg-light);
+      box-shadow:
+        0 10px 20px rgba(0,0,0,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    /* Animated gradient border (conic) */
+    .service-button::before {
+      content: "";
+      position: absolute; inset: -2px;
+      border-radius: inherit;
+      background:
+        conic-gradient(from 0deg,
+          var(--accent-1),
+          var(--accent-2),
+          var(--accent-3),
+          var(--accent-2),
+          var(--accent-1));
+      z-index: -1;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      padding: 2px; /* border thickness */
+      opacity: 0.0;
+      animation: spin 3.5s linear infinite paused;
+      transition: opacity 250ms ease;
+    }
+
+    /* Shine sweep */
+    .service-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(120deg,
+          rgba(255,255,255,0) 35%,
+          rgba(255,255,255,0.12) 50%,
+          rgba(255,255,255,0) 65%);
+      transform: translateX(-120%);
+      transition: transform 700ms ease;
+      pointer-events: none;
+    }
+
     .service-button:hover {
-      background-color: var(--button-hover-bg-dark);
+      transform:
+        translateY(-4px)
+        rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
       border-color: var(--button-hover-border-dark);
-      font-weight: 700;
-      transform: scale(1.05);
-      box-shadow: 0 0 16px #66ccffaa;
-      color: #99ddff;
+      background: var(--button-hover-bg-dark);
+      box-shadow:
+        0 16px 32px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      color: #cfeeff;
     }
     body.light .service-button:hover {
-      background-color: var(--button-hover-bg-light);
       border-color: var(--button-hover-border-light);
-      box-shadow: 0 0 12px #3399ffcc;
-      color: #336699;
+      background: var(--button-hover-bg-light);
+      color: #335a88;
+      box-shadow:
+        0 16px 32px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.8);
     }
+    .service-button:hover::before { opacity: 0.9; animation-play-state: running; }
+    .service-button:hover::after  { transform: translateX(120%); }
 
-    /* Icons */
-    .icon {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
-      fill: #66ccff;
-      transition: fill 0.3s;
-    }
-    .service-button:hover .icon {
-      fill: #99ddff;
-    }
-    body.light .icon {
-      fill: #336699;
-    }
-    body.light .service-button:hover .icon {
-      fill: #6699cc;
-    }
-
-    /* Weather and Clock container */
-    #weather-clock {
-      margin-bottom: 30px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: center;
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: #99ccff;
-      user-select: none;
-      text-shadow: 0 0 5px rgba(0,0,0,0.7);
-      z-index: 10; /* Above bubbles */
-      position: relative;
-      justify-content: center;
-    }
-    body.light #weather-clock {
-      color: #336699;
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
-    }
-
-    /* Location display */
-    #location {
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: #aaccff;
-      text-shadow: 0 0 4px rgba(0,0,0,0.6);
-      user-select: none;
-      text-align: center;
-    }
-    #citystate {
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: #bbddff;
-      margin-bottom: 3px;
-      text-shadow: 0 0 6px rgba(51,153,255,0.7);
-      user-select: none;
-      text-align: center;
-    }
-    body.light #location {
-      color: #6688aa;
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-    }
-    body.light #citystate {
-      color: #557799;
-      text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
-    }
-
-    /* Toggle Buttons */
-    #toggle-theme {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 20px;
-      cursor: pointer;
-      user-select: none;
-      transition:
-        background-color 0.3s,
-        border-color 0.3s,
-        color 0.3s;
-      border: 2px solid var(--button-border-dark);
-      background-color: var(--button-bg-dark);
-      color: var(--text-dark);
-      z-index: 30;
-      text-shadow: inherit;
-    }
-    body.light #toggle-theme {
-      border-color: var(--button-border-light);
-      background-color: var(--button-bg-light);
-      color: var(--text-light);
-    }
-    #toggle-theme:hover {
-      background-color: var(--button-hover-bg-dark);
-      border-color: var(--button-hover-border-dark);
-      color: #99ddff;
-    }
-    body.light #toggle-theme:hover {
-      background-color: var(--button-hover-bg-light);
-      border-color: var(--button-hover-border-light);
-      color: #336699;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 2rem;
-      }
-      p#greeting {
-        font-size: 1.1rem;
-      }
-      p#welcome {
-        font-size: 1rem;
-        max-width: 90vw;
-      }
-      .button-container {
-        flex-direction: column;
-        gap: 15px;
-      }
-      
-      
-      #weather-clock {
-        gap: 10px;
-        font-size: 1.1rem;
-      }
-      #toggle-theme {
-        font-size: 0.85rem;
-        padding: 6px 10px;
-        right: 15px;
-      }
-    }
-    /* Fluid button styled like toggle-theme */
-#fluid-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 20px;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-  border: 2px solid var(--button-border-dark);
-  background-color: var(--button-bg-dark);
-  color: var(--text-dark);
-  z-index: 30;
-  text-shadow: inherit;
-  text-decoration: none; /* Removes underline */
-  display: inline-block;
-}
-
-body.light #fluid-btn {
-  border-color: var(--button-border-light);
-  background-color: var(--button-bg-light);
-  color: var(--text-light);
-}
-
-#fluid-btn:hover {
-  background-color: var(--button-hover-bg-dark);
-  border-color: var(--button-hover-border-dark);
-  color: #99ddff;
-}
-
-body.light #fluid-btn:hover {
-  background-color: var(--button-hover-bg-light);
-  border-color: var(--button-hover-border-light);
-  color: #336699;
-}
-
-
-
-
-
-    #galaga-btn {
-  position: fixed;
-  top: 60px;
-  left: 20px;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 20px;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-  border: 2px solid var(--button-border-dark);
-  background-color: var(--button-bg-dark);
-  color: var(--text-dark);
-  z-index: 30;
-  text-shadow: inherit;
-  text-decoration: none; /* Removes underline */
-  display: inline-block;
-}
-
-body.light #galaga-btn {
-  border-color: var(--button-border-light);
-  background-color: var(--button-bg-light);
-  color: var(--text-light);
-}
-
-#galaga-btn:hover {
-  background-color: var(--button-hover-bg-dark);
-  border-color: var(--button-hover-border-dark);
-  color: #99ddff;
-}
-
-body.light #galaga-btn:hover {
-  background-color: var(--button-hover-bg-light);
-  border-color: var(--button-hover-border-light);
-  color: #336699;
-}
-
-    
-
-    @media (max-width: 768px) {
-  body {
-    overflow-y: hidden !important;
-    position: fixed; /* locks scrolling */
-    width: 100%;
-  }
-}
-
-
-    /* Background Animations */
-    /* Only bubbles now */
-    #bg-animation-3 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-    
-    .bubble {
+    /* Ripple on click (injected span) */
+    .service-button .ripple {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.5; /* increased opacity for brightness */
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      transition: background-color 0.5s ease;
-      background-color: #66ccff;
+      pointer-events: none;
+      transform: scale(0);
+      opacity: 0.35;
+      background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0) 70%);
+      animation: ripple 650ms ease-out forwards;
+      mix-blend-mode: screen;
     }
 
-    .service-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    /* SVG icon in buttons */
+    .icon { width: 36px; height: 36px; flex-shrink: 0; transition: transform 220ms ease; }
+    .service-button:hover .icon { transform: translateY(-1px) scale(1.04); }
+    body.light .icon { fill: #336699; }
+    body:not(.light) .icon { fill: #66ccff; }
 
-.sub-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  /* Always visible, no animation or hover effects */
-}
+    /* Small app-store buttons beneath each service */
+    .sub-buttons { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+    .small-btn {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 4px 10px; font-size: 0.75rem; border-radius: 5px;
+      text-decoration: none; transition: background-color 0.2s ease;
+      color: inherit; border: 1px solid rgba(255,255,255,0.2);
+    }
+    body.light .small-btn { background-color: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1); }
+    .small-btn:hover { background-color: rgba(255, 255, 255, 0.25); }
+    body.light .small-btn:hover { background-color: rgba(0, 0, 0, 0.1); }
 
-.small-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px;
-  font-size: 0.75rem;
-  border-radius: 5px;
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-  color: inherit;
-  border: 1px solid rgba(255,255,255,0.2);
-}
+    /* =========================================================
+       WEATHER / CLOCK
+       ========================================================= */
+    #weather-clock {
+      margin-bottom: 30px; display: flex; flex-direction: column; gap: 6px;
+      align-items: center; font-size: 1.2rem; font-weight: 500; color: #99ccff;
+      user-select: none; text-shadow: 0 0 5px rgba(0,0,0,0.7); z-index: 10; position: relative;
+    }
+    body.light #weather-clock { color: #336699; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); }
+    #location { font-weight: 600; font-size: 1.1rem; color: #aaccff; text-shadow: 0 0 4px rgba(0,0,0,0.6); user-select: none; text-align: center; }
+    #citystate { font-weight: 700; font-size: 1.2rem; color: #bbddff; margin-bottom: 3px; text-shadow: 0 0 6px rgba(51,153,255,0.7); user-select: none; text-align: center; }
+    body.light #location { color: #6688aa; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+    body.light #citystate { color: #557799; text-shadow: 1px 1px 3px rgba(255,255,255,0.7); }
 
-body.light .small-btn {
-  background-color: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
+    /* =========================================================
+       THEME TOGGLE BUTTON
+       ========================================================= */
+    #toggle-theme {
+      position: fixed; top: 20px; right: 20px; padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
+      border-radius: 20px; cursor: pointer; user-select: none;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+      border: 2px solid var(--button-border-dark);
+      background-color: rgba(31, 31, 31, 0.9);
+      color: var(--text-dark); z-index: 30; text-shadow: inherit;
+    }
+    body.light #toggle-theme { border-color: var(--button-border-light); background-color: var(--button-bg-light); color: var(--text-light); }
+    #toggle-theme:hover { background-color: var(--button-hover-bg-dark); border-color: var(--button-hover-border-dark); color: #99ddff; }
+    body.light #toggle-theme:hover { background-color: var(--button-hover-bg-light); border-color: var(--button-hover-border-light); color: #336699; }
 
-.small-btn:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-}
+    /* =========================================================
+       RESPONSIVE TWEAKS
+       ========================================================= */
+    @media (max-width: 480px) {
+      h1 { font-size: 2rem; }
+      p#greeting { font-size: 1.1rem; }
+      p#welcome { font-size: 1rem; max-width: 90vw; }
+      #weather-clock { gap: 10px; font-size: 1.1rem; }
+      #toggle-theme { font-size: 0.85rem; padding: 6px 10px; right: 15px; }
+    }
+    @media (max-width: 768px) {
+      body { overflow-y: hidden !important; position: fixed; width: 100%; }
+    }
 
-body.light .small-btn:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-      
-    /* Animations keyframes */
-    @keyframes floatBubble {
-      0%, 100% {transform: translateY(0);}
-      50% {transform: translateY(-20px);}
+    /* =========================================================
+       BACKGROUND BUBBLES
+       ========================================================= */
+    #bg-animation-3 {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; overflow: hidden;
+    }
+    .bubble {
+      position: absolute; border-radius: 50%; opacity: 0.5;
+      animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+      transition: background-color 0.5s ease; background-color: #66ccff;
+    }
+    @keyframes floatBubble { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-20px);} }
+
+    /* =========================================================
+       ANIMATIONS
+       ========================================================= */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes ripple {
+      to { transform: scale(8); opacity: 0; }
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .service-button,
+      .service-button::before,
+      .service-button::after,
+      .icon { transition: none !important; animation: none !important; }
+      .service-button { transform: none !important; }
+      .bubble { animation: none !important; }
     }
   </style>
 </head>
 <body>
-  <!-- Fluid Button -->
-  <a id="fluid-btn" href="https://mikeykhill.github.io/Website/fluids-site-ocean/">Fluid</a>
-  
-  <!-- Galaga Button -->
-  <a id="galaga-btn" href="https://mikeykhill.github.io/Website/galaga/undersea_galaga.html">Galaga</a>
-
-  <!-- Toggle Theme Button -->
+  <!-- THEME TOGGLE -->
   <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
 
-  <!-- Header & Greeting -->
+  <!-- HEADER -->
   <h1>Welcome to MH Servers!</h1>
   <p id="greeting">Hello!</p>
   <p id="welcome">Easily access the Hill family's Jellyfin media and Nextcloud file server.</p>
 
-  <!-- Weather, Location & Clock -->
+  <!-- LOCATION / TIME / WEATHER -->
   <div id="weather-clock" aria-live="polite" aria-atomic="true">
     <div id="citystate" aria-label="City and state">Loading city and state...</div>
     <div id="location" aria-label="User latitude and longitude">Loading location...</div>
     <div id="clock" aria-label="Local time">Loading time...</div>
     <div id="weather" aria-label="Local weather">
-  <span id="weather-icon" style="vertical-align: middle; font-size: 1.2em; display: none;"></span>
-  <span id="weather-text">Loading weather...</span></div>
-  </div>
-
-  <!-- Service Buttons -->
-<div class="button-container">
-
-  <!-- Jellyfin Group -->
-  <div class="service-group">
-    <button class="service-button" id="jellyfin-btn" data-tooltip="Access photos, videos and more" type="button" aria-describedby="tooltip-jellyfin">
-      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <path fill="#66ccff" d="M32 2C20 2 8 10 8 26c0 4 1 8 3 12l2 4h38l2-4c2-4 3-8 3-12C56 10 44 2 32 2zm0 4c10.5 0 20 6.5 20 20 0 3.3-0.8 6.6-2.6 10H14.6C12.8 32.6 12 29.3 12 26c0-13.5 9.5-20 20-20zm-4 40v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm12 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm-24 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2z"/>
-      </svg>
-      Jellyfin
-    </button>
-    <div class="sub-buttons">
-      <a href="https://play.google.com/store/apps/details?id=org.jellyfin.mobile" target="_blank" class="small-btn">📱 Android</a>
-      <a href="https://apps.apple.com/us/app/jellyfin-mobile/id1480192618" target="_blank" class="small-btn">🍎 iOS</a>
+      <span id="weather-icon" style="vertical-align: middle; font-size: 1.2em; display: none;"></span>
+      <span id="weather-text">Loading weather...</span>
     </div>
   </div>
 
-  <!-- Nextcloud Group -->
-  <div class="service-group">
-    <button class="service-button" id="nextcloud-btn" data-tooltip="Upload, share and access files" type="button" aria-describedby="tooltip-nextcloud">
-      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
-      </svg>
-      Nextcloud
-    </button>
-    <div class="sub-buttons">
-      <a href="https://play.google.com/store/apps/details?id=com.nextcloud.client" target="_blank" class="small-btn">📱 Android</a>
-      <a href="https://apps.apple.com/us/app/nextcloud/id1125420102" target="_blank" class="small-btn">🍎 iOS</a>
+  <!-- MAIN SERVICE BUTTONS -->
+  <div class="button-container">
+    <!-- Jellyfin -->
+    <div class="service-group">
+      <button class="service-button" id="jellyfin-btn" type="button" aria-describedby="tooltip-jellyfin">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <path d="M32 2C20 2 8 10 8 26c0 4 1 8 3 12l2 4h38l2-4c2-4 3-8 3-12C56 10 44 2 32 2zm0 4c10.5 0 20 6.5 20 20 0 3.3-0.8 6.6-2.6 10H14.6C12.8 32.6 12 29.3 12 26c0-13.5 9.5-20 20-20zm-4 40v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm12 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2zm-24 0v4h-4v6a2 2 0 0 0 4 0v-2h2v2a2 2 0 0 0 4 0v-6h-4v-4h-2z"/>
+        </svg>
+        Jellyfin
+      </button>
+      <div class="sub-buttons">
+        <a href="https://play.google.com/store/apps/details?id=org.jellyfin.mobile" target="_blank" class="small-btn" rel="noopener">📱 Android</a>
+        <a href="https://apps.apple.com/us/app/jellyfin-mobile/id1480192618" target="_blank" class="small-btn" rel="noopener">🍎 iOS</a>
+      </div>
+    </div>
+
+    <!-- Nextcloud -->
+    <div class="service-group">
+      <button class="service-button" id="nextcloud-btn" type="button" aria-describedby="tooltip-nextcloud">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
+        </svg>
+        Nextcloud
+      </button>
+      <div class="sub-buttons">
+        <a href="https://play.google.com/store/apps/details?id=com.nextcloud.client" target="_blank" class="small-btn" rel="noopener">📱 Android</a>
+        <a href="https://apps.apple.com/us/app/nextcloud/id1125420102" target="_blank" class="small-btn" rel="noopener">🍎 iOS</a>
+      </div>
+    </div>
+
+    <!-- File Converter -->
+    <div class="service-group">
+      <button class="service-button" id="converter-btn" type="button">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6 0 1.1-.3 2.1-.8 3l1.5 1.5C19.6 15.1 20 13.6 20 12c0-4.4-3.6-8-8-8zm-6.7 1.5L3.8 7c-.5 1-.8 2-.8 3 0 4.4 3.6 8 8 8v3l4-4-4-4v3c-3.3 0-6-2.7-6-6 0-1.1.3-2.1.8-3z"/>
+        </svg>
+        File Converter
+      </button>
+    </div>
+
+    <!-- ROMs -->
+    <div class="service-group">
+      <button class="service-button" id="roms-btn" type="button">
+        <!-- Joy-Con style icon -->
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <rect x="20" y="6" width="24" height="52" rx="12" ry="12" fill="currentColor"/>
+          <circle cx="32" cy="20" r="3" />
+          <circle cx="32" cy="30" r="3" />
+          <circle cx="32" cy="40" r="3" />
+          <circle cx="32" cy="50" r="3" />
+        </svg>
+        ROMs-
+      </button>
     </div>
   </div>
 
-
-    <!-- File Converter Button -->
-  <div class="service-group">
-    <button class="service-button" id="converter-btn" type="button">
-      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6 0 1.1-.3 2.1-.8 3l1.5 1.5C19.6 15.1 20 13.6 20 12c0-4.4-3.6-8-8-8zm-6.7 1.5L3.8 7c-.5 1-.8 2-.8 3 0 4.4 3.6 8 8 8v3l4-4-4-4v3c-3.3 0-6-2.7-6-6 0-1.1.3-2.1.8-3z"/>
-    </svg>
-      File Converter
-    </button>
-  </div>
-
-</div>
-
-
+  <!-- FOOTER -->
   <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
     &copy; 2025 Michael Hill &mdash;
   </footer>
@@ -503,240 +373,203 @@ body.light .small-btn:hover {
   <div id="bg-animation-3"></div>
 
   <script>
-  const body = document.body;
-  const toggleThemeBtn = document.getElementById('toggle-theme');
-  const greetingEl = document.getElementById('greeting');
-  const cityStateEl = document.getElementById('citystate');
-  const locationEl = document.getElementById('location');
-  const clockEl = document.getElementById('clock');
-  const weatherEl = document.getElementById('weather');
-  const bgContainer = document.getElementById('bg-animation-3');
+    /* =======================================================
+       DOM HOOKS
+       ======================================================= */
+    const body = document.body;
+    const toggleThemeBtn = document.getElementById('toggle-theme');
+    const greetingEl = document.getElementById('greeting');
+    const cityStateEl = document.getElementById('citystate');
+    const locationEl = document.getElementById('location');
+    const clockEl = document.getElementById('clock');
+    const weatherTextEl = document.getElementById('weather-text');
+    const bgContainer = document.getElementById('bg-animation-3');
 
-    if(window.innerWidth <= 768){
-  document.body.style.position = 'fixed';
-  document.body.style.top = '0';
-  document.body.style.left = '0';
-  document.body.style.right = '0';
-  document.body.style.bottom = '0';
-  document.body.style.overflow = 'hidden';
+    if (window.innerWidth <= 768) {
+      document.body.style.position = 'fixed';
+      document.body.style.top = '0';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.bottom = '0';
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    }
 
-  window.addEventListener('touchmove', function(e){
-    e.preventDefault();
-  }, { passive: false });
-}
-
-
-  // Load saved theme
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light') {
-    body.classList.add('light');
-    toggleThemeBtn.textContent = '🌞 Light Mode';
-  } else {
-    toggleThemeBtn.textContent = '🌙 Dark Mode';
-  }
-
-  // Toggle theme on button click
-  toggleThemeBtn.addEventListener('click', () => {
-    const goingToLight = !body.classList.contains('light');
-    if (goingToLight) {
+    /* THEME PERSISTENCE + TOGGLE */
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
       body.classList.add('light');
       toggleThemeBtn.textContent = '🌞 Light Mode';
-      localStorage.setItem('theme', 'light');
     } else {
-      body.classList.remove('light');
       toggleThemeBtn.textContent = '🌙 Dark Mode';
-      localStorage.setItem('theme', 'dark');
     }
-    updateBgColors(goingToLight);
-  });
-
-  // Shades of the blue color for bubbles - brighter, slight variation
-  const bubbleColors = [
-    'rgba(102, 217, 255, 0.3)',  // brighter darker shade
-    'rgba(128, 229, 255, 0.3)', // brighter original
-    'rgba(170, 245, 255, 0.3)'  // brighter lighter shade
-  ];
-
-  // Create bubble function with option for starting near top (for variety)
-  function createBubble(index, isLight) {
-    const bubble = document.createElement('div');
-    bubble.classList.add('bubble');
-    const size = 15 + Math.random() * 15;
-    bubble.style.width = bubble.style.height = size + 'px';
-    bubble.style.left = (Math.random() * 100) + 'vw';
-    bubble.style.top = (Math.random() * 90) + 'vh';
-
-    let colorIndex = Math.floor(Math.random() * bubbleColors.length);
-    let baseColor = bubbleColors[colorIndex];
-
-    if (isLight) {
-      if(colorIndex === 0) baseColor = 'rgba(140, 240, 255, 0.25)';
-      else if(colorIndex === 1) baseColor = 'rgba(180, 255, 255, 0.25)';
-      else baseColor = 'rgba(210, 255, 255, 0.25)';
-    }
-
-    bubble.style.backgroundColor = baseColor;
-    bubble.style.animationDuration = (4 + Math.random() * 4) + 's';
-    bubble.style.animationName = 'floatBubble';
-    bubble.style.animationDelay = (Math.random() * 6) + 's';
-    return bubble;
-  }
-
-  // Populate bubbles
-  function populateBubbles() {
-    bgContainer.innerHTML = '';
-    const isLight = body.classList.contains('light');
-    const bubbleCount = 100;
-    for(let i = 0; i < bubbleCount; i++) {
-      bgContainer.appendChild(createBubble(i, isLight));
-    }
-  }
-  populateBubbles();
-
-  // Update bubble colors on theme change
-  function updateBgColors(forceLight = null) {
-    const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
-    for(let el of bgContainer.children) {
-      let colorIndex = Math.floor(Math.random() * bubbleColors.length);
-      let baseColor = bubbleColors[colorIndex];
-      if (isLight) {
-        if(colorIndex === 0) baseColor = 'rgba(90, 180, 220, 0.4)';
-        else if(colorIndex === 1) baseColor = 'rgba(70, 160, 210, 0.4)';
-        else baseColor = 'rgba(100, 200, 230, 0.4)';
-      }
-      el.style.backgroundColor = baseColor;
-    }
-  }
-
-  // Update greeting based on time of day
-  function updateGreeting() {
-    const now = new Date();
-    const hour = now.getHours();
-    let greeting = 'Hello!';
-    if (hour >= 5 && hour < 12) greeting = 'Good morning,';
-    else if (hour >= 12 && hour < 18) greeting = 'Good afternoon,';
-    else greeting = 'Good evening,';
-    greetingEl.textContent = greeting;
-  }
-  updateGreeting();
-
-  // Update clock every second with seconds shown
-  function updateClock() {
-    const now = new Date();
-    const options = {hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: true};
-    clockEl.textContent = now.toLocaleTimeString([], options);
-  }
-  updateClock();
-  setInterval(() => {
-    updateClock();
-    updateGreeting();
-  }, 1000);
-
-  // Fetch weather data using Open-Meteo API, imperial units
-  async function fetchWeather() {
-  if (!navigator.geolocation) {
-    cityStateEl.textContent = 'Geolocation not supported';
-    locationEl.textContent = '';
-    weatherTextEl.textContent = '';
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-
-    // Fetch city and state via OpenStreetMap Nominatim API
-    try {
-      const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-      if (!geoResp.ok) throw new Error('Geo location fetch failed');
-      const geoData = await geoResp.json();
-
-      let city = '';
-      let state = '';
-      if (geoData.address) {
-        city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.hamlet || '';
-        state = geoData.address.state || geoData.address.county || '';
-      }
-      if (city && state) {
-        cityStateEl.textContent = `${city}, ${state}`;
-
+    toggleThemeBtn.addEventListener('click', () => {
+      const goingToLight = !body.classList.contains('light');
+      if (goingToLight) {
+        body.classList.add('light');
+        toggleThemeBtn.textContent = '🌞 Light Mode';
+        localStorage.setItem('theme', 'light');
       } else {
-        cityStateEl.textContent = 'Unknown Location';
+        body.classList.remove('light');
+        toggleThemeBtn.textContent = '🌙 Dark Mode';
+        localStorage.setItem('theme', 'dark');
       }
-    } catch {
-      cityStateEl.textContent = 'Location unavailable';
+      updateBgColors(goingToLight);
+    });
+
+    /* BACKGROUND BUBBLES */
+    const bubbleColorsDark = [
+      'rgba(102, 217, 255, 0.3)',
+      'rgba(128, 229, 255, 0.3)',
+      'rgba(170, 245, 255, 0.3)'
+    ];
+    const bubbleColorsLight = [
+      'rgba(90, 180, 220, 0.4)',
+      'rgba(70, 160, 210, 0.4)',
+      'rgba(100, 200, 230, 0.4)'
+    ];
+    const BUBBLE_COUNT = 100;
+
+    function createBubble(isLight) {
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      const size = 15 + Math.random() * 15;
+      bubble.style.width = bubble.style.height = size + 'px';
+      bubble.style.left = (Math.random() * 100) + 'vw';
+      bubble.style.top = (Math.random() * 90) + 'vh';
+      bubble.style.animationName = 'floatBubble';
+      bubble.style.animationDuration = (4 + Math.random() * 4) + 's';
+      bubble.style.animationDelay = (Math.random() * 6) + 's';
+      const palette = isLight ? bubbleColorsLight : bubbleColorsDark;
+      bubble.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+      return bubble;
     }
+    function populateBubbles() {
+      bgContainer.innerHTML = '';
+      const isLight = body.classList.contains('light');
+      for (let i = 0; i < BUBBLE_COUNT; i++) bgContainer.appendChild(createBubble(isLight));
+    }
+    function updateBgColors(forceLight = null) {
+      const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
+      const palette = isLight ? bubbleColorsLight : bubbleColorsDark;
+      for (const el of bgContainer.children) el.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+    }
+    populateBubbles();
 
-    // Fetch weather from WeatherAPI in imperial units (F)
-    try {
-      const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=84acb4b38fbe409b9b3131518250108&q=${lat},${lon}&aqi=no`);
-      if (!response.ok) throw new Error('Weather fetch failed');
-      const data = await response.json();
+    /* GREETING + CLOCK */
+    function updateGreeting() {
+      const hour = new Date().getHours();
+      greetingEl.textContent = (hour >= 5 && hour < 12) ? 'Good morning,' :
+                               (hour >= 12 && hour < 18) ? 'Good afternoon,' : 'Good evening,';
+    }
+    function updateClock() {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    }
+    updateGreeting(); updateClock();
+    setInterval(() => { updateClock(); updateGreeting(); }, 1000);
 
-      // Display city/state (based on weather API in case OSM fails)
-      const city = data.location.name;
-      const region = data.location.region || data.location.country;
-      cityStateEl.textContent = `${city}, ${region}`;
-
-
-      // Display coordinates
-      locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-
-
-      // Prepare weather info
-      const tempF = data.current.temp_f;
-      const wind = data.current.wind_mph;
-      const condition = data.current.condition.text.toLowerCase(); // Normalize for matching
-
-      // Map keywords to emojis
-      const emojiMap = [
-        { keywords: ['clear', 'sunny'], icon: '☀️' },
-        { keywords: ['partly', 'mostly sunny'], icon: '🌤️' },
-        { keywords: ['cloud', 'overcast'], icon: '☁️' },
-        { keywords: ['rain', 'shower', 'drizzle'], icon: '🌧️' },
-        { keywords: ['thunder'], icon: '⛈️' },
-        { keywords: ['snow'], icon: '❄️' },
-        { keywords: ['fog', 'mist', 'haze'], icon: '🌫️' },
-      ];
-
-      let emoji = '🌡️'; // default
-      for (const { keywords, icon } of emojiMap) {
-        if (keywords.some(word => condition.includes(word))) {
-          emoji = icon;
-          break;
+    /* WEATHER */
+    const emojiMap = [
+      { keywords: ['clear', 'sunny'], icon: '☀️' },
+      { keywords: ['partly', 'mostly sunny'], icon: '🌤️' },
+      { keywords: ['cloud', 'overcast'], icon: '☁️' },
+      { keywords: ['rain', 'shower', 'drizzle'], icon: '🌧️' },
+      { keywords: ['thunder'], icon: '⛈️' },
+      { keywords: ['snow'], icon: '❄️' },
+      { keywords: ['fog', 'mist', 'haze'], icon: '🌫️' },
+    ];
+    async function fetchWeather() {
+      if (!navigator.geolocation) {
+        cityStateEl.textContent = 'Geolocation not supported'; locationEl.textContent = ''; weatherTextEl.textContent = '';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude; const lon = pos.coords.longitude;
+        try {
+          const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+          if (!geoResp.ok) throw new Error();
+          const geoData = await geoResp.json();
+          const address = geoData.address || {};
+          const city = address.city || address.town || address.village || address.hamlet || '';
+          const state = address.state || address.county || '';
+          cityStateEl.textContent = (city && state) ? `${city}, ${state}` : 'Unknown Location';
+        } catch { cityStateEl.textContent = 'Location unavailable'; }
+        try {
+          const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=84acb4b38fbe409b9b3131518250108&q=${lat},${lon}&aqi=no`);
+          if (!response.ok) throw new Error();
+          const data = await response.json();
+          const city = data.location.name; const region = data.location.region || data.location.country;
+          cityStateEl.textContent = `${city}, ${region}`;
+          locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+          const tempF = data.current.temp_f; const wind = data.current.wind_mph;
+          const conditionText = data.current.condition.text; const condition = conditionText.toLowerCase();
+          let emoji = '🌡️'; for (const { keywords, icon } of emojiMap) { if (keywords.some(w => condition.includes(w))) { emoji = icon; break; } }
+          weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${conditionText} ${emoji}`;
+        } catch {
+          locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+          weatherTextEl.textContent = 'Weather data unavailable';
         }
-      }
-
-      // Display in UI
-      const weatherTextEl = document.getElementById('weather-text');
-      weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${data.current.condition.text} ${emoji}`;
-
-
-    } catch (error) {
-      cityStateEl.textContent = 'Location found';
-      locationEl.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-      const weatherTextEl = document.getElementById('weather-text');
-      weatherTextEl.textContent = 'Weather data unavailable';
+      });
     }
-  }); // end getCurrentPosition callback
-} // end fetchWeather function
+    fetchWeather();
 
+    /* BUTTON HANDLERS (open in new tab) */
+    document.getElementById('jellyfin-btn').addEventListener('click', () => {
+      window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
+    });
+    document.getElementById('nextcloud-btn').addEventListener('click', () => {
+      window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
+    });
+    document.getElementById('converter-btn').addEventListener('click', () => {
+      window.open('https://convertx.mhservers.com', '_blank', 'noopener,noreferrer');
+    });
+    document.getElementById('roms-btn').addEventListener('click', () => {
+      window.open('https://rom.mhservers.com', '_blank', 'noopener,noreferrer');
+    });
 
-  fetchWeather();
+    /* =======================================================
+       “MAGNETIC” TILT + RIPPLE EFFECT
+       - Tilt follows cursor using CSS vars (no layout thrash).
+       - Ripple spawns on click; disabled when reduced motion.
+       ======================================================= */
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cards = document.querySelectorAll('.service-button');
 
-  // Button click handlers
-  document.getElementById('jellyfin-btn').addEventListener('click', () => {
-    window.open('https://jellyfin.mhservers.com', '_blank', 'noopener,noreferrer');
-  });
-  document.getElementById('nextcloud-btn').addEventListener('click', () => {
-    window.open('https://nextcloud.mhservers.com', '_blank', 'noopener,noreferrer');
-  });
-  document.getElementById('converter-btn').addEventListener('click', () => {
-    window.open('https://convertx.mhservers.com', '_blank', 'noopener,noreferrer');
-  });
-
-
-</script>
-
+    cards.forEach(card => {
+      // tilt on pointer move
+      card.addEventListener('pointermove', (e) => {
+        if (prefersReduced) return;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const midX = rect.width / 2;
+        const midY = rect.height / 2;
+        const rotateY = ((x - midX) / midX) * 6;  // left/right
+        const rotateX = -((y - midY) / midY) * 6; // up/down
+        card.style.setProperty('--tilt-x', rotateX.toFixed(2) + 'deg');
+        card.style.setProperty('--tilt-y', rotateY.toFixed(2) + 'deg');
+      });
+      // reset on leave
+      card.addEventListener('pointerleave', () => {
+        if (prefersReduced) return;
+        card.style.setProperty('--tilt-x', '0deg');
+        card.style.setProperty('--tilt-y', '0deg');
+      });
+      // click ripple
+      card.addEventListener('click', (e) => {
+        if (prefersReduced) return;
+        const rect = card.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        const size = Math.max(rect.width, rect.height) * 0.5;
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        card.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+    });
+  </script>
 </body>
 </html>
