@@ -13,24 +13,15 @@
 
   <style>
     /* =========================================================
-       THEME TOKENS
+       THEME TOKENS (dark only)
        ========================================================= */
     :root {
-      /* Dark */
       --bg-dark: #121212;
       --text-dark: #eee;
       --button-bg-dark: rgba(255, 255, 255, 0.08);
       --button-border-dark: rgba(102, 204, 255, 0.25);
       --button-hover-bg-dark: rgba(255, 255, 255, 0.12);
       --button-hover-border-dark: rgba(153, 221, 255, 0.6);
-
-      /* Light */
-      --bg-light: #f0f4f8;
-      --text-light: #222;
-      --button-bg-light: rgba(0, 0, 0, 0.04);
-      --button-border-light: rgba(51, 102, 153, 0.25);
-      --button-hover-bg-light: rgba(0, 0, 0, 0.06);
-      --button-hover-border-light: rgba(51, 102, 153, 0.45);
 
       /* Accents */
       --accent-1: #67d3ff;
@@ -57,11 +48,6 @@
       transition: background-color 0.5s, color 0.5s;
       position: relative;
       text-shadow: 0 0 5px rgba(0,0,0,0.7);
-    }
-    body.light {
-      background-color: var(--bg-light);
-      color: var(--text-light);
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
 
     /* Everything you see sits in #app. On mobile we scale #app to fit. */
@@ -150,11 +136,6 @@
       transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease;
       overflow: hidden;
     }
-    body.light .service-button {
-      border-color: var(--button-border-light);
-      background: var(--button-bg-light);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
-    }
 
     /* Animated gradient border */
     .service-button::before {
@@ -182,14 +163,6 @@
       box-shadow: 0 16px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
       color: #cfeeff;
     }
-    body.light .service-button:hover {
-      border-color: var(--button-hover-border-light);
-      background: var(--button-hover-bg-light);
-      color: #335a88;
-      box-shadow: 0 16px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
-    }
-    .service-button:hover::before { opacity: 0.9; animation-play-state: running; }
-    .service-button:hover::after  { transform: translateX(120%); }
 
     /* Ripple on click (injected span) */
     .service-button .ripple {
@@ -201,8 +174,7 @@
 
     .icon { width: 36px; height: 36px; flex-shrink: 0; transition: transform 220ms ease; }
     .service-button:hover .icon { transform: translateY(-1px) scale(1.04); }
-    body.light .icon { fill: #336699; }
-    body:not(.light) .icon { fill: #66ccff; }
+    body:not(.light) .icon { fill: #66ccff; } /* retained fill for dark; .light is never used */
 
     /* Small app-store buttons beneath each service */
     .sub-buttons { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
@@ -212,9 +184,7 @@
       text-decoration: none; transition: background-color 0.2s ease;
       color: inherit; border: 1px solid rgba(255,255,255,0.2);
     }
-    body.light .small-btn { background-color: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1); }
     .small-btn:hover { background-color: rgba(255, 255, 255, 0.25); }
-    body.light .small-btn:hover { background-color: rgba(0, 0, 0, 0.1); }
 
     /* =========================================================
        WEATHER / CLOCK
@@ -225,16 +195,13 @@
       font-size: 1.2rem; font-weight: 500; color: #99ccff; user-select: none;
       text-shadow: 0 0 5px rgba(0,0,0,0.7); z-index: 10; position: relative;
     }
-    body.light #weather-clock { color: #336699; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); }
     #location { font-weight: 600; font-size: 1.05rem; color: #aaccff; text-shadow: 0 0 4px rgba(0,0,0,0.6); user-select: none; text-align: center; }
     #citystate { font-weight: 700; font-size: 1.15rem; color: #bbddff; margin-bottom: 3px; text-shadow: 0 0 6px rgba(51,153,255,0.7); user-select: none; text-align: center; }
-    body.light #location { color: #6688aa; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
-    body.light #citystate { color: #557799; text-shadow: 1px 1px 3px rgba(255,255,255,0.7); }
 
     /* =========================================================
-       THEME TOGGLE BUTTON
+       TOP-RIGHT "AI" BUTTON (replaces theme toggle)
        ========================================================= */
-    #toggle-theme {
+    #ai-btn {
       position: fixed; top: 16px; right: 16px;
       padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
       border-radius: 20px; cursor: pointer; user-select: none;
@@ -243,9 +210,7 @@
       background-color: rgba(31, 31, 31, 0.9);
       color: var(--text-dark); z-index: 30; text-shadow: inherit;
     }
-    body.light #toggle-theme { border-color: var(--button-border-light); background-color: var(--button-bg-light); color: var(--text-light); }
-    #toggle-theme:hover { background-color: var(--button-hover-bg-dark); border-color: var(--button-hover-border-dark); color: #99ddff; }
-    body.light #toggle-theme:hover { background-color: var(--button-hover-bg-light); border-color: var(--button-hover-border-light); color: #336699; }
+    #ai-btn:hover { background-color: var(--button-hover-bg-dark); border-color: var(--button-hover-border-dark); color: #99ddff; }
 
     /* =========================================================
        RESPONSIVE TWEAKS (content size tuned for fitting)
@@ -312,8 +277,8 @@
   </style>
 </head>
 <body>
-  <!-- Theme toggle stays outside scaling so it doesn't shrink on mobile -->
-  <button id="toggle-theme" aria-label="Toggle dark/light mode" type="button">🌙 Dark Mode</button>
+  <!-- Replaced theme toggle with AI button (always dark mode) -->
+  <button id="ai-btn" aria-label="Open AI site" type="button">🤖 AI</button>
 
   <!-- Everything else scales as one unit on mobile -->
   <div id="fit-wrapper">
@@ -400,8 +365,6 @@
     /* =======================================================
        DOM HOOKS
        ======================================================= */
-    const body = document.body;
-    const toggleThemeBtn = document.getElementById('toggle-theme');
     const greetingEl = document.getElementById('greeting');
     const cityStateEl = document.getElementById('citystate');
     const locationEl = document.getElementById('location');
@@ -412,46 +375,23 @@
     const fitWrapper = document.getElementById('fit-wrapper');
 
     /* =======================================================
-       THEME PERSISTENCE + TOGGLE
+       AI BUTTON LINK
        ======================================================= */
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      body.classList.add('light');
-      toggleThemeBtn.textContent = '🌞 Light Mode';
-    } else {
-      toggleThemeBtn.textContent = '🌙 Dark Mode';
-    }
-    toggleThemeBtn.addEventListener('click', () => {
-      const goingToLight = !body.classList.contains('light');
-      if (goingToLight) {
-        body.classList.add('light');
-        toggleThemeBtn.textContent = '🌞 Light Mode';
-        localStorage.setItem('theme', 'light');
-      } else {
-        body.classList.remove('light');
-        toggleThemeBtn.textContent = '🌙 Dark Mode';
-        localStorage.setItem('theme', 'dark');
-      }
-      updateBgColors(goingToLight);
-      fitToViewport(); // theme can affect metrics slightly
+    document.getElementById('ai-btn').addEventListener('click', () => {
+      window.open('https://ai.mhservers.com', '_blank', 'noopener,noreferrer');
     });
 
     /* =======================================================
-       BACKGROUND BUBBLES
+       BACKGROUND BUBBLES (dark palette only)
        ======================================================= */
     const bubbleColorsDark = [
       'rgba(102, 217, 255, 0.3)',
       'rgba(128, 229, 255, 0.3)',
       'rgba(170, 245, 255, 0.3)'
     ];
-    const bubbleColorsLight = [
-      'rgba(90, 180, 220, 0.4)',
-      'rgba(70, 160, 210, 0.4)',
-      'rgba(100, 200, 230, 0.4)'
-    ];
     const BUBBLE_COUNT = window.matchMedia('(max-width: 560px)').matches ? 60 : 100;
 
-    function createBubble(isLight) {
+    function createBubble() {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
       const size = 15 + Math.random() * 15;
@@ -461,19 +401,12 @@
       bubble.style.animationName = 'floatBubble';
       bubble.style.animationDuration = (4 + Math.random() * 4) + 's';
       bubble.style.animationDelay = (Math.random() * 6) + 's';
-      const palette = isLight ? bubbleColorsLight : bubbleColorsDark;
-      bubble.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+      bubble.style.backgroundColor = bubbleColorsDark[Math.floor(Math.random() * bubbleColorsDark.length)];
       return bubble;
     }
     function populateBubbles() {
       bgContainer.innerHTML = '';
-      const isLight = body.classList.contains('light');
-      for (let i = 0; i < BUBBLE_COUNT; i++) bgContainer.appendChild(createBubble(isLight));
-    }
-    function updateBgColors(forceLight = null) {
-      const isLight = forceLight !== null ? forceLight : body.classList.contains('light');
-      const palette = isLight ? bubbleColorsLight : bubbleColorsDark;
-      for (const el of bgContainer.children) el.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+      for (let i = 0; i < BUBBLE_COUNT; i++) bgContainer.appendChild(createBubble());
     }
     populateBubbles();
 
@@ -601,8 +534,6 @@
 
     /* =======================================================
        MOBILE: FIT EVERYTHING TO THE VIEWPORT (NO SCROLL)
-       - On small screens, compute a scale so #app fits 100dvh.
-       - Desktop remains unscaled.
        ======================================================= */
     const isSmallScreen = () => window.matchMedia('(max-width: 560px)').matches;
 
@@ -637,9 +568,10 @@
     setTimeout(fitToViewport, 300);
     window.addEventListener('resize', fitToViewport);
     window.addEventListener('orientationchange', () => setTimeout(fitToViewport, 50));
-    // If system theme switches (affects antialiasing/metrics ever so slightly)
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', fitToViewport);
+    // System theme changes no longer affect layout (dark-only)
   </script>
 </body>
+</html>
+
 </html>
 
