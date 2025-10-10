@@ -133,7 +133,7 @@
       cursor: pointer;
       transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
       box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
-      transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+      transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
       overflow: hidden;
     }
 
@@ -146,25 +146,39 @@
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       mask-composite: exclude; -webkit-mask-composite: xor;
-      padding: 2px; opacity: 0.0; animation: spin 3.5s linear infinite paused;
-      transition: opacity 250ms ease;
+      padding: 2px; opacity: 0; animation: spin 6s linear infinite paused;
+      transition: opacity 250ms ease, filter 250ms ease;
+      filter: blur(0px);
     }
     /* Shine sweep */
     .service-button::after {
       content: ""; position: absolute; inset: 0; border-radius: inherit;
-      background: linear-gradient(120deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 65%);
+      background: radial-gradient(120% 60% at 0% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0) 60%) ,
+                  linear-gradient(120deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 65%);
       transform: translateX(-120%); transition: transform 700ms ease; pointer-events: none;
     }
 
+    /* ✨ Enhanced hover state: aura + faster border spin + soft bloom */
     .service-button:hover {
       transform: translateY(-4px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
       border-color: var(--button-hover-border-dark);
       background: var(--button-hover-bg-dark);
-      box-shadow: 0 16px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+      box-shadow:
+        0 16px 32px rgba(0,0,0,0.35),
+        0 0 0 1px rgba(153,221,255,0.25) inset,
+        0 0 24px rgba(102,204,255,0.2);
       color: #cfeeff;
+      filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25));
     }
+    .service-button:hover::before {
+      opacity: 0.95;
+      animation-play-state: running;
+      animation-duration: 3.2s; /* faster while hovering */
+      filter: blur(1px);
+    }
+    .service-button:hover::after  { transform: translateX(120%); }
 
-    /* Ripple on click (injected span) */
+    /* Click ripple (existing) */
     .service-button .ripple {
       position: absolute; border-radius: 50%; pointer-events: none;
       transform: scale(0); opacity: 0.35;
@@ -173,8 +187,8 @@
     }
 
     .icon { width: 36px; height: 36px; flex-shrink: 0; transition: transform 220ms ease; }
-    .service-button:hover .icon { transform: translateY(-1px) scale(1.04); }
-    body:not(.light) .icon { fill: #66ccff; } /* retained fill for dark; .light is never used */
+    .service-button:hover .icon { transform: translateY(-1px) scale(1.04) rotate(-0.5deg); }
+    body:not(.light) .icon { fill: #66ccff; } /* dark fill */
 
     /* Small app-store buttons beneath each service */
     .sub-buttons { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
@@ -216,7 +230,6 @@
        RESPONSIVE TWEAKS (content size tuned for fitting)
        ========================================================= */
     @media (max-width: 560px) {
-      /* We’ll scale #app if needed, but also make content naturally tighter */
       #app { padding: 18px 14px 24px; }
 
       h1 { font-size: clamp(1.35rem, 6vw, 1.8rem); margin: 4px 0; }
@@ -228,7 +241,7 @@
       #location  { font-size: 0.95rem; }
 
       .button-container {
-        grid-template-columns: 1fr;   /* stack buttons */
+        grid-template-columns: 1fr;
         gap: 12px;
         max-width: 520px;
         margin-bottom: 14px;
@@ -499,12 +512,17 @@
       const cards = document.querySelectorAll('.service-button');
       cards.forEach(card => {
         let lastX = 0, lastY = 0, rect = null, ticking = false;
-        card.addEventListener('pointerenter', () => { rect = card.getBoundingClientRect(); });
+
+        card.addEventListener('pointerenter', () => {
+          rect = card.getBoundingClientRect();
+        });
+
         card.addEventListener('pointerleave', () => {
           rect = null;
           card.style.setProperty('--tilt-x', '0deg');
           card.style.setProperty('--tilt-y', '0deg');
         });
+
         card.addEventListener('pointermove', (e) => {
           if (!rect) return;
           lastX = e.clientX - rect.left; lastY = e.clientY - rect.top;
@@ -518,6 +536,7 @@
             ticking = false;
           });
         });
+
         card.addEventListener('click', (e) => {
           const r = card.getBoundingClientRect();
           const ripple = document.createElement('span');
@@ -572,6 +591,3 @@
   </script>
 </body>
 </html>
-
-</html>
-
