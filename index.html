@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -35,6 +35,12 @@
     /* INTRO ANIMATION: register custom property so it can animate in transform */
     @property --intro-ty {
       syntax: "<length-percentage>";
+      inherits: false;
+      initial-value: 0px;
+    }
+    /* Hover bob variable (for smooth floating without fighting transform) */
+    @property --bob {
+      syntax: "<length>";
       inherits: false;
       initial-value: 0px;
     }
@@ -125,8 +131,9 @@
 
     .service-button {
       --tilt-x: 0deg; --tilt-y: 0deg;
-      /* INTRO ANIMATION: variable used for initial slide-in */
+      /* INTRO ANIMATION: variable used for initial slide-in + hover bob variable */
       --intro-ty: 0px;
+      --bob: 0px;
 
       position: relative; isolation: isolate;
       border: 1px solid var(--button-border-dark);
@@ -142,8 +149,8 @@
       width: 100%;
       cursor: pointer;
 
-      /* INTRO ANIMATION: include translateY via CSS var before existing rotations */
-      transform: translate3d(0, var(--intro-ty), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+      /* INTRO + BOB: translateY includes intro-ty and hover bob */
+      transform: translate3d(0, calc(var(--intro-ty) + var(--bob)), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
 
       box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
       transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
@@ -153,20 +160,13 @@
       opacity: 0;
     }
 
-    /* Animated gradient border */
+    /* ====== REMOVED SPINNING LINES: disable the animated gradient border ====== */
     .service-button::before {
+      display: none; /* fully removes the spinning conic-gradient border */
       content: "";
-      position: absolute; inset: -2px; border-radius: inherit;
-      background: conic-gradient(from 0deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-2), var(--accent-1));
-      z-index: -1;
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      mask-composite: exclude; -webkit-mask-composite: xor;
-      padding: 2px; opacity: 0; animation: spin 6s linear infinite paused;
-      transition: opacity 250ms ease, filter 250ms ease;
-      filter: blur(0px);
     }
-    /* Shine sweep */
+
+    /* Shine sweep (glimmer) — kept */
     .service-button::after {
       content: ""; position: absolute; inset: 0; border-radius: inherit;
       background: radial-gradient(120% 60% at 0% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0) 60%) ,
@@ -174,9 +174,9 @@
       transform: translateX(-120%); transition: transform 700ms ease; pointer-events: none;
     }
 
-    /* ✨ Enhanced hover state: aura + faster border spin + soft bloom */
+    /* ✨ Hover state: aura + bloom (no spinning border) + start bobbing */
     .service-button:hover {
-      transform: translate3d(0, var(--intro-ty), 0) translateY(-4px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      /* no manual translateY here; bobbing animation drives vertical motion */
       border-color: var(--button-hover-border-dark);
       background: var(--button-hover-bg-dark);
       box-shadow:
@@ -185,12 +185,7 @@
         0 0 24px rgba(102,204,255,0.2);
       color: #cfeeff;
       filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25));
-    }
-    .service-button:hover::before {
-      opacity: 0.95;
-      animation-play-state: running;
-      animation-duration: 3.2s; /* faster while hovering */
-      filter: blur(1px);
+      animation: hoverBob 1.8s ease-in-out infinite;
     }
     .service-button:hover::after  { transform: translateX(120%); }
 
@@ -289,8 +284,15 @@
     /* =========================================================
        ANIMATIONS
        ========================================================= */
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } } /* (unused now) */
     @keyframes ripple { to { transform: scale(8); opacity: 0; } }
+
+    /* Smooth hover bobbing via custom property (doesn't clobber tilt/intro transforms) */
+    @keyframes hoverBob {
+      0%   { --bob: -2px; }
+      50%  { --bob: -8px; }
+      100% { --bob: -2px; }
+    }
 
     /* INTRO ANIMATION: slide up + fade for service buttons */
     @keyframes btnIntro {
