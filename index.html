@@ -32,6 +32,13 @@
       --fit-scale: 1;
     }
 
+    /* INTRO ANIMATION: register custom property so it can animate in transform */
+    @property --intro-ty {
+      syntax: "<length-percentage>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
     /* =========================================================
        BASE LAYOUT
        ========================================================= */
@@ -118,6 +125,9 @@
 
     .service-button {
       --tilt-x: 0deg; --tilt-y: 0deg;
+      /* INTRO ANIMATION: variable used for initial slide-in */
+      --intro-ty: 0px;
+
       position: relative; isolation: isolate;
       border: 1px solid var(--button-border-dark);
       background: var(--button-bg-dark);
@@ -131,10 +141,16 @@
       font-size: 1rem; font-weight: 600;
       width: 100%;
       cursor: pointer;
-      transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+
+      /* INTRO ANIMATION: include translateY via CSS var before existing rotations */
+      transform: translate3d(0, var(--intro-ty), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+
       box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
       transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
       overflow: hidden;
+
+      /* INTRO ANIMATION: start hidden until animated in (keeps layout) */
+      opacity: 0;
     }
 
     /* Animated gradient border */
@@ -160,7 +176,7 @@
 
     /* ✨ Enhanced hover state: aura + faster border spin + soft bloom */
     .service-button:hover {
-      transform: translateY(-4px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transform: translate3d(0, var(--intro-ty), 0) translateY(-4px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
       border-color: var(--button-hover-border-dark);
       background: var(--button-hover-bg-dark);
       box-shadow:
@@ -276,6 +292,23 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes ripple { to { transform: scale(8); opacity: 0; } }
 
+    /* INTRO ANIMATION: slide up + fade for service buttons */
+    @keyframes btnIntro {
+      from {
+        --intro-ty: 100vh;  /* start from bottom of screen */
+        opacity: 0;
+      }
+      to {
+        --intro-ty: 0px;
+        opacity: 1;
+      }
+    }
+    /* Apply animation with slower duration and 0.25s stagger */
+    .button-container.intro .service-group:nth-child(1) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0ms; }
+    .button-container.intro .service-group:nth-child(2) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 250ms; }
+    .button-container.intro .service-group:nth-child(3) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 500ms; }
+    .button-container.intro .service-group:nth-child(4) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 750ms; }
+
     /* Accessibility */
     .service-button:focus-visible {
       outline: 2px solid currentColor;
@@ -284,7 +317,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .service-button, .service-button::before, .service-button::after, .icon { transition: none !important; animation: none !important; }
-      .service-button { transform: none !important; }
+      .service-button { transform: none !important; opacity: 1 !important; } /* INTRO ANIMATION: show instantly when reduced motion */
       .bubble { animation: none !important; }
     }
   </style>
@@ -386,6 +419,8 @@
     const bgContainer = document.getElementById('bg-animation-3');
     const app = document.getElementById('app');
     const fitWrapper = document.getElementById('fit-wrapper');
+    /* INTRO ANIMATION: container for the four buttons */
+    const buttonContainer = document.querySelector('.button-container');
 
     /* =======================================================
        AI BUTTON LINK
@@ -550,6 +585,15 @@
         });
       });
     }
+
+    /* =======================================================
+       INTRO ANIMATION: trigger on initial page load
+       ======================================================= */
+    window.addEventListener('load', () => {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && buttonContainer) {
+        buttonContainer.classList.add('intro');
+      }
+    });
 
     /* =======================================================
        MOBILE: FIT EVERYTHING TO THE VIEWPORT (NO SCROLL)
