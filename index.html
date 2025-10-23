@@ -388,13 +388,26 @@
         <div class="service-group">
           <button class="service-button" id="roms-btn" type="button">
             <!-- Joy-Con style icon -->
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-              <rect x="20" y="6" width="24" height="52" rx="12" ry="12" fill="currentColor"/>
-              <circle cx="32" cy="20" r="3" />
-              <circle cx="32" cy="30" r="3" />
-              <circle cx="32" cy="40" r="3" />
-              <circle cx="32" cy="50" r="3" />
-            </svg>
+            <!-- Old-school joystick SVG icon (drop-in for the ROMs button) -->
+<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+  <!-- Base -->
+  <rect x="10" y="36" width="44" height="18" rx="8" fill="currentColor"/>
+  <!-- Top platform -->
+  <rect x="18" y="30" width="28" height="8" rx="4" fill="currentColor" opacity="0.7"/>
+
+  <!-- Stick grommet -->
+  <circle cx="32" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="3"/>
+
+  <!-- Stick -->
+  <line x1="32" y1="30" x2="32" y2="18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Knob -->
+  <circle cx="32" cy="14" r="6" fill="currentColor"/>
+
+  <!-- Action button on the base (top-right corner) -->
+  <circle cx="48" cy="40" r="4" fill="currentColor"/>
+</svg>
+
             ROMs-
           </button>
         </div>
