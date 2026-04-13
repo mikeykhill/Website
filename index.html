@@ -240,6 +240,22 @@
       color: var(--text-dark); z-index: 30; text-shadow: inherit;
     }
     #ai-btn:hover { background-color: var(--button-hover-bg-dark); border-color: var(--button-hover-border-dark); color: #99ddff; }
+    #it-btn {
+  position: fixed; top: 16px; left: 16px;
+  padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
+  border-radius: 20px; cursor: pointer; user-select: none;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  border: 2px solid rgba(102, 255, 153, 0.4); /* green tint */
+  background-color: rgba(31, 31, 31, 0.9);
+  color: #66ff99;
+  z-index: 30;
+}
+
+#it-btn:hover {
+  background-color: rgba(102, 255, 153, 0.1);
+  border-color: rgba(102, 255, 153, 0.8);
+  color: #99ffcc;
+}
 
     /* =========================================================
        RESPONSIVE TWEAKS (content size tuned for fitting)
@@ -333,6 +349,7 @@
 <body>
   <!-- Replaced theme toggle with AI button (always dark mode) -->
   <button id="ai-btn" aria-label="Open AI site" type="button">🤖 AI</button>
+  <button id="it-btn" aria-label="Open IT tools" type="button">🛠️ IT</button>
 
   <!-- Everything else scales as one unit on mobile -->
   <div id="fit-wrapper">
@@ -434,6 +451,9 @@
     document.getElementById('ai-btn').addEventListener('click', () => {
       window.open('https://ai.mhservers.com', '_blank', 'noopener,noreferrer');
     });
+    document.getElementById('it-btn').addEventListener('click', () => {
+  window.open('https://it.mhservers.com', '_blank', 'noopener,noreferrer');
+});
 
     /* =======================================================
        BACKGROUND: HIGH DENSITY PARTICLE OCEAN (THREE.JS)
