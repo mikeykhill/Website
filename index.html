@@ -319,7 +319,6 @@
   </style>
 </head>
 <body>
-  <button id="ai-btn" aria-label="Open AI site" type="button">🤖 AI</button>
   <button id="it-btn" aria-label="Open IT tools" type="button">🛠️ IT</button>
 
   <div id="fit-wrapper">
@@ -398,10 +397,6 @@
   <div id="bg-animation-3"></div>
 
   <script>
-    /* =======================================================
-       ⚠️  SECURITY: Replace with your own key — never commit
-           a real API key to a public repository.
-       ======================================================= */
     const WEATHER_API_KEY = '84acb4b38fbe409b9b3131518250108';
 
     /* =======================================================
@@ -418,11 +413,8 @@
     const buttonContainer = document.querySelector('.button-container');
 
     /* =======================================================
-       TOP CORNER BUTTON LINKS
+       TOP CORNER BUTTON LINK
        ======================================================= */
-    document.getElementById('ai-btn').addEventListener('click', () => {
-      window.open('https://ai.mhservers.com', '_blank', 'noopener,noreferrer');
-    });
     document.getElementById('it-btn').addEventListener('click', () => {
       window.open('https://it.mhservers.com', '_blank', 'noopener,noreferrer');
     });
