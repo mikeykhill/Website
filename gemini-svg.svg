@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67d3ff"/>
+      <stop offset="100%" stop-color="#8a6bff"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Dark rounded background -->
+  <rect width="512" height="512" rx="120" fill="#020202" />
+  
+  <!-- Subtle glowing border -->
+  <rect width="512" height="512" rx="120" fill="none" stroke="url(#grad)" stroke-width="12" opacity="0.4"/>
+
+  <!-- Letter M -->
+  <path d="M130 350 V180 L205 270 L280 180 V350" fill="none" stroke="url(#grad)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Letter H -->
+  <path d="M340 180 V350 M420 180 V350 M340 265 H420" fill="none" stroke="url(#grad)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
