@@ -1,21 +1,27 @@
 /* =========================================================
-   THEME TOKENS (dark mode only)
+   THEME TOKENS & VARIABLES
    ========================================================= */
 :root {
+  /* Core Colors */
   --bg-dark: #020202;
   --text-dark: #eee;
+  
+  /* Glassmorphism Button Colors */
   --button-bg-dark: rgba(255, 255, 255, 0.08);
   --button-border-dark: rgba(102, 204, 255, 0.25);
   --button-hover-bg-dark: rgba(255, 255, 255, 0.12);
   --button-hover-border-dark: rgba(153, 221, 255, 0.6);
 
+  /* Brand Accents */
   --accent-1: #67d3ff;
   --accent-2: #6aa8ff;
   --accent-3: #8a6bff;
 
-  --fit-scale: 1;
+  /* Used by JS to shrink the UI on small screens */
+  --fit-scale: 1; 
 }
 
+/* Define custom properties for smooth CSS animations */
 @property --intro-ty {
   syntax: "<length-percentage>";
   inherits: false;
@@ -28,23 +34,26 @@
 }
 
 /* =========================================================
-   BASE LAYOUT
+   BASE LAYOUT & RESET
    ========================================================= */
 html, body {
-  margin: 0; padding: 0;
+  margin: 0; 
+  padding: 0;
   height: 100%;
-  min-height: 100dvh;
-  overflow-x: hidden;
+  min-height: 100dvh; /* dvh ensures it doesn't hide behind mobile browser bars */
+  overflow-x: hidden; /* Prevents horizontal scrolling */
 }
+
 body {
   background-color: var(--bg-dark);
   color: var(--text-dark);
   font-family: 'Inter', sans-serif;
-  transition: background-color 0.5s, color 0.5s;
   position: relative;
-  text-shadow: 0 0 5px rgba(0,0,0,0.7);
+  /* Adds a subtle shadow behind all text to make it readable over the glowing particles */
+  text-shadow: 0 0 5px rgba(0,0,0,0.7); 
 }
 
+/* Wrapper that handles viewport scaling via JavaScript */
 #fit-wrapper {
   width: 100%;
   height: 100%;
@@ -54,8 +63,10 @@ body {
   justify-content: center;
   overflow: hidden;
   position: relative;
-  z-index: 1;
+  z-index: 1; /* Keeps UI above the Three.js canvas */
 }
+
+/* Main content container */
 #app {
   width: 100%;
   max-width: 900px;
@@ -65,16 +76,20 @@ body {
   flex-direction: column;
   align-items: center;
   transform-origin: top center;
-  transform: scale(var(--fit-scale));
+  transform: scale(var(--fit-scale)); /* Dynamically scaled by main.js */
 }
 
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
 h1 {
   font-weight: 700;
   font-size: 2.5rem;
   margin: 6px 0 5px;
   text-align: center;
-  user-select: none;
+  user-select: none; /* Prevents accidental highlighting */
 }
+
 p#greeting {
   font-weight: 600;
   font-size: 1.3rem;
@@ -82,8 +97,9 @@ p#greeting {
   text-align: center;
   color: #66ccff;
   user-select: none;
-  text-shadow: 0 0 6px #3399ff;
+  text-shadow: 0 0 6px #3399ff; /* Creates a glowing text effect */
 }
+
 p#welcome {
   font-weight: 400;
   font-size: 1.2rem;
@@ -94,62 +110,88 @@ p#welcome {
 }
 
 /* =========================================================
-   CTA BUTTONS GRID
+   MAIN CTA BUTTON GRID
    ========================================================= */
 .button-container {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, minmax(240px, 1fr)); /* Two equal columns */
   gap: 22px;
   width: 100%;
   max-width: 680px;
   margin-bottom: 28px;
-  perspective: 1000px;
+  perspective: 1000px; /* Required for the 3D tilt hover effect to work */
 }
-.service-group { display: flex; flex-direction: column; align-items: center; }
 
+.service-group { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+}
+
+/* Forces the 3rd odd button (File Converter) to center itself across both columns */
 .service-group:last-child {
-  grid-column: 1 / -1; /* Tells it to span all available columns */
-  width: calc(50% - 11px); /* Keeps it the exact same width as the top buttons */
-  margin: 0 auto; /* Centers it perfectly */
+  grid-column: 1 / -1; 
+  width: calc(50% - 11px); 
+  margin: 0 auto; 
 }
 
+/* Performance optimization: tells browser to expect transform changes */
 .service-button,
-.service-button .icon { will-change: transform; }
+.service-button .icon { 
+  will-change: transform; 
+}
 
+/* =========================================================
+   GLASSMORPHISM SERVICE BUTTONS
+   ========================================================= */
 .service-button {
-  --tilt-x: 0deg; --tilt-y: 0deg;
+  --tilt-x: 0deg; 
+  --tilt-y: 0deg;
   --intro-ty: 0px;
   --bob: 0px;
 
-  position: relative; isolation: isolate;
+  position: relative; 
+  isolation: isolate; /* Creates a new stacking context for children */
   border: 1px solid var(--button-border-dark);
   background: var(--button-bg-dark);
   color: inherit;
+  
+  /* Creates the frosted glass effect */
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); 
+  
   border-radius: 16px;
   padding: 16px 18px;
   min-height: 78px;
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  font-size: 1rem; font-weight: 600;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 12px;
+  font-size: 1rem; 
+  font-weight: 600;
   width: 100%;
   cursor: pointer;
 
+  /* Applies the 3D tilt (driven by JS) and the entrance/bobbing animations */
   transform: translate3d(0, calc(var(--intro-ty) + var(--bob)), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
 
   box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
   transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
   overflow: hidden;
-  opacity: 0;
+  opacity: 0; /* Hidden by default until entrance animation plays */
 }
 
-.service-button::before { display: none; content: ""; }
-
+/* Glare effect overlay that swipes across on hover */
 .service-button::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  content: ""; 
+  position: absolute; 
+  inset: 0; 
+  border-radius: inherit;
   background: radial-gradient(120% 60% at 0% 0%, rgba(255,255,255,0.08), rgba(255,255,255,0) 60%),
               linear-gradient(120deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 65%);
-  transform: translateX(-120%); transition: transform 700ms ease; pointer-events: none;
+  transform: translateX(-120%); 
+  transition: transform 700ms ease; 
+  pointer-events: none;
 }
 
 .service-button:hover {
@@ -160,66 +202,125 @@ p#welcome {
     0 0 0 1px rgba(153,221,255,0.25) inset,
     0 0 24px rgba(102,204,255,0.2);
   color: #cfeeff;
-  filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25));
+  filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25)); /* Makes the whole button cast a cyan glow */
   animation: hoverBob 1.8s ease-in-out infinite;
 }
-.service-button:hover::after { transform: translateX(120%); }
 
-.service-button .ripple {
-  position: absolute; border-radius: 50%; pointer-events: none;
-  transform: scale(0); opacity: 0.35;
-  background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0) 70%);
-  animation: ripple 650ms ease-out forwards; mix-blend-mode: screen;
+/* Triggers the glare swipe */
+.service-button:hover::after { 
+  transform: translateX(120%); 
 }
 
-.icon { width: 36px; height: 36px; flex-shrink: 0; transition: transform 220ms ease; fill: #66ccff; }
-.service-button:hover .icon { transform: translateY(-1px) scale(1.04) rotate(-0.5deg); }
+/* Focus state for keyboard accessibility */
+.service-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(102, 204, 255, 0.25);
+}
 
-.sub-buttons { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+/* Material Design click ripple (spawns via JS) */
+.service-button .ripple {
+  position: absolute; 
+  border-radius: 50%; 
+  pointer-events: none;
+  transform: scale(0); 
+  opacity: 0.35;
+  background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0) 70%);
+  animation: ripple 650ms ease-out forwards; 
+  mix-blend-mode: screen;
+}
+
+/* SVG Icon styling */
+.icon { 
+  width: 36px; 
+  height: 36px; 
+  flex-shrink: 0; 
+  transition: transform 220ms ease; 
+  fill: #66ccff; 
+}
+
+.service-button:hover .icon { 
+  transform: translateY(-1px) scale(1.04) rotate(-0.5deg); 
+}
+
+/* App Store / Play Store mini buttons */
+.sub-buttons { 
+  display: flex; 
+  justify-content: center; 
+  gap: 8px; 
+  margin-top: 8px; 
+}
+
 .small-btn {
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px; font-size: 0.75rem; border-radius: 5px;
-  text-decoration: none; transition: background-color 0.2s ease;
-  color: inherit; border: 1px solid rgba(255,255,255,0.2);
+  padding: 4px 10px; 
+  font-size: 0.75rem; 
+  border-radius: 5px;
+  text-decoration: none; 
+  transition: background-color 0.2s ease;
+  color: inherit; 
+  border: 1px solid rgba(255,255,255,0.2);
 }
-.small-btn:hover { background-color: rgba(255, 255, 255, 0.25); }
+
+.small-btn:hover { 
+  background-color: rgba(255, 255, 255, 0.25); 
+}
 
 /* =========================================================
-   WEATHER / CLOCK
+   WEATHER & CLOCK WIDGET
    ========================================================= */
 #weather-clock {
   margin-bottom: 22px;
-  display: flex; flex-direction: column; gap: 6px; align-items: center;
-  font-size: 1.2rem; font-weight: 500; color: #99ccff; user-select: none;
-  text-shadow: 0 0 5px rgba(0,0,0,0.7); z-index: 10; position: relative;
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+  align-items: center;
+  font-size: 1.2rem; 
+  font-weight: 500; 
+  color: #99ccff; 
+  user-select: none;
+  text-shadow: 0 0 5px rgba(0,0,0,0.7); 
+  z-index: 10; 
+  position: relative;
 }
-#location { font-weight: 600; font-size: 1.05rem; color: #aaccff; text-shadow: 0 0 4px rgba(0,0,0,0.6); user-select: none; text-align: center; }
-#citystate { font-weight: 700; font-size: 1.15rem; color: #bbddff; margin-bottom: 3px; text-shadow: 0 0 6px rgba(51,153,255,0.7); user-select: none; text-align: center; }
+
+#location { 
+  font-weight: 600; 
+  font-size: 1.05rem; 
+  color: #aaccff; 
+  text-shadow: 0 0 4px rgba(0,0,0,0.6); 
+  text-align: center; 
+}
+
+#citystate { 
+  font-weight: 700; 
+  font-size: 1.15rem; 
+  color: #bbddff; 
+  margin-bottom: 3px; 
+  text-shadow: 0 0 6px rgba(51,153,255,0.7); 
+  text-align: center; 
+}
 
 /* =========================================================
-   TOP CORNER BUTTONS
+   FLOATING CORNER BUTTONS
    ========================================================= */
-#ai-btn {
-  position: fixed; top: 16px; right: 16px;
-  padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
-  border-radius: 20px; cursor: pointer; user-select: none;
-  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-  border: 2px solid var(--button-border-dark);
-  background-color: rgba(31, 31, 31, 0.9);
-  color: var(--text-dark); z-index: 30; text-shadow: inherit;
-}
-#ai-btn:hover { background-color: var(--button-hover-bg-dark); border-color: var(--button-hover-border-dark); color: #99ddff; }
-
 #it-btn {
-  position: fixed; top: 16px; left: 16px;
-  padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
-  border-radius: 20px; cursor: pointer; user-select: none;
+  position: fixed; 
+  top: 16px; 
+  left: 16px;
+  padding: 8px 14px; 
+  font-size: 0.9rem; 
+  font-weight: 600;
+  border-radius: 20px; 
+  cursor: pointer; 
+  user-select: none;
   transition: background-color 0.3s, border-color 0.3s, color 0.3s;
   border: 2px solid rgba(102, 255, 153, 0.4);
   background-color: rgba(31, 31, 31, 0.9);
   color: #66ff99;
   z-index: 30;
 }
+
 #it-btn:hover {
   background-color: rgba(102, 255, 153, 0.1);
   border-color: rgba(102, 255, 153, 0.8);
@@ -227,11 +328,12 @@ p#welcome {
 }
 
 /* =========================================================
-   RESPONSIVE TWEAKS
+   MOBILE RESPONSIVENESS
    ========================================================= */
 @media (max-width: 560px) {
   #app { padding: 18px 14px 24px; }
 
+  /* Fluid typography for headers */
   h1 { font-size: clamp(1.35rem, 6vw, 1.8rem); margin: 4px 0; }
   p#greeting { font-size: 1.05rem; margin: 2px 0 4px; }
   p#welcome { font-size: 1rem; margin: 0 0 16px; }
@@ -241,29 +343,42 @@ p#welcome {
   #location  { font-size: 0.95rem; }
 
   .button-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Switches grid to a single column */
     gap: 12px;
     max-width: 520px;
     margin-bottom: 14px;
   }
+  
+  /* Restores the File Converter button to full width on mobile */
+  .service-group:last-child {
+    width: 100%;
+  }
+
   .service-button {
     min-height: 72px;
     border-radius: 14px;
     padding: 14px 14px;
   }
+  
   .icon { width: 30px; height: 30px; }
-
   .sub-buttons { gap: 6px; margin-top: 6px; }
   .small-btn { font-size: 0.72rem; padding: 4px 8px; }
 }
 
 /* =========================================================
-   BACKGROUND CANVAS
+   BACKGROUND CANVAS (Three.js Container)
    ========================================================= */
 #bg-animation-3 {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-  z-index: 0; pointer-events: none; overflow: hidden;
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100vw; 
+  height: 100dvh;
+  z-index: 0; /* Ensures it sits behind the UI */
+  pointer-events: none; /* Prevents canvas from blocking button clicks */
+  overflow: hidden;
 }
+
 #bg-animation-3 canvas {
   display: block;
   position: fixed;
@@ -272,35 +387,46 @@ p#welcome {
 }
 
 /* =========================================================
-   ANIMATIONS
+   KEYFRAME ANIMATIONS
    ========================================================= */
-@keyframes ripple { to { transform: scale(8); opacity: 0; } }
+@keyframes ripple { 
+  to { transform: scale(8); opacity: 0; } 
+}
 
+/* The gentle floating effect when hovering a button */
 @keyframes hoverBob {
   0%   { --bob: -2px; }
   50%  { --bob: -8px; }
   100% { --bob: -2px; }
 }
 
+/* The slide-up entrance animation on load */
 @keyframes btnIntro {
   from { --intro-ty: 100vh; opacity: 0; }
   to   { --intro-ty: 0px;   opacity: 1; }
 }
 
+/* Staggers the entrance of each button */
 .button-container.intro .service-group:nth-child(1) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0ms; }
 .button-container.intro .service-group:nth-child(2) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 250ms; }
 .button-container.intro .service-group:nth-child(3) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 500ms; }
+/* Included a 4th nth-child delay just in case you add another tool later */
 .button-container.intro .service-group:nth-child(4) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 750ms; }
 
-.service-button:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 4px rgba(102, 204, 255, 0.25);
-}
-
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+/* Disables all animations for users with vestibular motion sensitivity */
 @media (prefers-reduced-motion: reduce) {
-  .service-button, .service-button::before, .service-button::after, .icon {
-    transition: none !important; animation: none !important;
+  .service-button, 
+  .service-button::before, 
+  .service-button::after, 
+  .icon {
+    transition: none !important; 
+    animation: none !important;
   }
-  .service-button { transform: none !important; opacity: 1 !important; }
+  .service-button { 
+    transform: none !important; 
+    opacity: 1 !important; 
+  }
 }
