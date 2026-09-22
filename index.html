@@ -1,44 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2" />
+  <!-- ==========================================
+       META & SEO
+       ========================================== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="MH Servers — access Jellyfin, Nextcloud, and file converter." />
+  <meta name="description" content="MH Servers — Central access portal for Jellyfin, Nextcloud, and local network tools." />
+  <meta name="theme-color" content="#020202" /> <!-- Matches mobile browser UI to your dark theme -->
   <title>MH Servers</title>
 
+  <!-- Favicon (Using the cache-busting ?v=4 to ensure the latest SVG loads) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=4" />
+
+  <!-- ==========================================
+       EXTERNAL ASSETS (Fonts)
+       ========================================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   
-  <!-- Link to your new CSS file -->
-  <link rel="stylesheet" href="css/style.css" />
+  <!-- ==========================================
+       STYLESHEETS
+       ========================================== -->
+  <link rel="stylesheet" href="css/style.css?v=2" />
 
-  <noscript><style>
-    .service-button { opacity: 1 !important; transform: none !important; }
-  </style></noscript>
+  <!-- Fallback for users with JavaScript disabled -->
+  <noscript>
+    <style>
+      .service-button { opacity: 1 !important; transform: none !important; }
+    </style>
+  </noscript>
 </head>
 <body>
+  
+  <!-- Floating action button for quick IT tools access -->
   <button id="it-btn" aria-label="Open IT tools" type="button">🛠️ IT</button>
 
+  <!-- Main wrapper to handle vertical centering and viewport constraints -->
   <div id="fit-wrapper">
-    <div id="app">
-      <h1>MH Servers</h1>
-      <p id="greeting">Hello!</p>
-      <p id="welcome">Easily access the Hill Jellyfin media server, Nextcloud file server, and more.</p>
+    
+    <!-- Changed to a <main> tag for better semantic structure -->
+    <main id="app">
+      
+      <!-- ==========================================
+           HEADER & GREETING
+           ========================================== -->
+      <header>
+        <h1>MH Servers</h1>
+        <p id="greeting">Hello!</p>
+        <p id="welcome">Easily access the Hill Jellyfin media server, Nextcloud file server, and more.</p>
+      </header>
 
-      <div id="weather-clock" aria-live="polite" aria-atomic="true">
+      <!-- ==========================================
+           WIDGETS (Time, Location, Weather)
+           ========================================== -->
+      <!-- aria-live="polite" tells screen readers to announce updates dynamically without interrupting -->
+      <section id="weather-clock" aria-live="polite" aria-atomic="true">
         <div id="citystate" aria-label="City and state">Loading city and state...</div>
         <div id="location" aria-label="User latitude and longitude">Loading location...</div>
         <div id="clock" aria-label="Local time">Loading time...</div>
         <div id="weather" aria-label="Local weather">
           <span id="weather-text">Loading weather...</span>
         </div>
-      </div>
+      </section>
 
-      <div class="button-container">
-        <!-- Jellyfin -->
+      <!-- ==========================================
+           SERVICE PORTALS
+           ========================================== -->
+      <!-- Changed to a <nav> tag since this is your primary navigation -->
+      <nav class="button-container" aria-label="Main Services">
+        
+        <!-- Jellyfin App -->
         <div class="service-group">
           <button class="service-button" id="jellyfin-btn" type="button">
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -52,7 +86,7 @@
           </div>
         </div>
 
-        <!-- Nextcloud -->
+        <!-- Nextcloud App -->
         <div class="service-group">
           <button class="service-button" id="nextcloud-btn" type="button">
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -66,7 +100,7 @@
           </div>
         </div>
 
-        <!-- File Converter -->
+        <!-- Custom File Converter -->
         <div class="service-group">
           <button class="service-button" id="converter-btn" type="button">
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -75,17 +109,25 @@
             File Converter
           </button>
         </div>
-      </div>
+        
+      </nav>
 
-      <footer style="user-select:none; color: inherit; font-size:0.9rem; text-align:center;">
+      <!-- ==========================================
+           FOOTER
+           ========================================== -->
+      <footer style="user-select:none; color: rgba(255,255,255,0.5); font-size:0.85rem; text-align:center; margin-top: 20px;">
         &copy; 2026 Michael Hill
       </footer>
-    </div>
+      
+    </main>
   </div>
 
+  <!-- Container for the Three.js particle background -->
   <div id="bg-animation-3"></div>
 
-  <!-- Link to your new JavaScript file -->
+  <!-- ==========================================
+       SCRIPTS
+       ========================================== -->
   <script src="js/main.js"></script>
 </body>
 </html>
