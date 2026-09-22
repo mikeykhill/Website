@@ -107,6 +107,12 @@ p#welcome {
 }
 .service-group { display: flex; flex-direction: column; align-items: center; }
 
+.service-group:last-child {
+  grid-column: 1 / -1; /* Tells it to span all available columns */
+  width: calc(50% - 11px); /* Keeps it the exact same width as the top buttons */
+  margin: 0 auto; /* Centers it perfectly */
+}
+
 .service-button,
 .service-button .icon { will-change: transform; }
 
