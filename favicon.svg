@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#67d3ff"/>
+      <stop offset="100%" stop-color="#8a6bff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Smooth dark background -->
+  <rect width="512" height="512" rx="112" fill="#08080c" />
+  
+  <!-- Stylish inner border -->
+  <rect width="460" height="460" x="26" y="26" rx="90" fill="none" stroke="url(#grad)" stroke-width="6" opacity="0.4"/>
+
+  <!-- Monogram: MH sharing the center line -->
+  <g filter="url(#glow)">
+    <path d="
+      M 150 340 V 172 
+      L 203 256 L 256 172 
+      V 340 
+      M 256 256 H 362 
+      M 362 172 V 340" 
+      fill="none" stroke="url(#grad)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
