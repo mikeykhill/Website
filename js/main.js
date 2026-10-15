@@ -1,8 +1,6 @@
 /* =======================================================
    CONFIGURATION
    ======================================================= */
-// WeatherAPI Key (Free tier)
-const WEATHER_API_KEY = '84acb4b38fbe409b9b3131518250108';
 const IDLE_FADE_MS    = 20000; // 20 seconds of mouse inactivity before middle UI fades on Harbor BG
 
 /* =======================================================
@@ -318,55 +316,55 @@ setInterval(() => {
 }, 1000);
 
 /* =======================================================
-   WEATHER WIDGET
+   WEATHER WIDGET (Open-Meteo Integration - No API Key)
    ======================================================= */
-const emojiMap = [
-  { keywords: ['clear', 'sunny'],            icon: '☀️' },
-  { keywords: ['partly', 'mostly sunny'],   icon: '🌤️' },
-  { keywords: ['cloud', 'overcast'],        icon: '☁️' },
-  { keywords: ['rain', 'shower', 'drizzle'],icon: '🌧️' },
-  { keywords: ['thunder'],                  icon: '⛈️' },
-  { keywords: ['snow'],                     icon: '❄️' },
-  { keywords: ['fog', 'mist', 'haze'],      icon: '🌫️' },
-];
+const weatherCodeMap = {
+  0:  { text: 'Clear sky',             icon: '☀️' },
+  1:  { text: 'Mainly clear',          icon: '🌤️' },
+  2:  { text: 'Partly cloudy',         icon: '⛅' },
+  3:  { text: 'Overcast',              icon: '☁️' },
+  45: { text: 'Fog',                   icon: '🌫️' },
+  48: { text: 'Depositing rime fog',   icon: '🌫️' },
+  51: { text: 'Light drizzle',         icon: '🌧️' },
+  53: { text: 'Moderate drizzle',      icon: '🌧️' },
+  55: { text: 'Dense drizzle',         icon: '🌧️' },
+  61: { text: 'Slight rain',           icon: '🌧️' },
+  63: { text: 'Moderate rain',         icon: '🌧️' },
+  65: { text: 'Heavy rain',            icon: '🌧️' },
+  71: { text: 'Slight snow fall',      icon: '❄️' },
+  73: { text: 'Moderate snow fall',    icon: '❄️' },
+  75: { text: 'Heavy snow fall',       icon: '❄️' },
+  95: { text: 'Thunderstorm',          icon: '⛈️' },
+};
 
-async function applyWeatherToDOM(query, isFallback = false) {
+async function applyWeatherToDOM(lat, lon, locationLabel) {
   try {
-    const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${query}&aqi=no`);
-    if (!response.ok) throw new Error('Weather API error');
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`);
+    if (!response.ok) throw new Error('Open-Meteo API error');
     const data = await response.json();
 
-    const city   = data.location.name;
-    const region = data.location.region || data.location.country;
-    cityStateEl.textContent = `${city}, ${region}`;
+    cityStateEl.textContent = locationLabel;
+    locationEl.textContent  = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+
+    const tempC         = data.current.temperature_2m;
+    const tempF         = (tempC * 9/5) + 32;
+    const windKmh       = data.current.wind_speed_10m;
+    const windMph       = windKmh * 0.621371;
+    const weatherCode   = data.current.weather_code;
+
+    const condition     = weatherCodeMap[weatherCode] || { text: 'Fair', icon: '🌡️' };
     
-    if (!isFallback) {
-      const lat = data.location.lat;
-      const lon = data.location.lon;
-      locationEl.textContent  = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-    } else {
-      locationEl.textContent = 'Default Location';
-    }
-
-    const tempF         = data.current.temp_f;
-    const wind          = data.current.wind_mph;
-    const conditionText = data.current.condition.text;
-    const condition     = conditionText.toLowerCase();
-
-    let emoji = '🌡️';
-    for (const { keywords, icon } of emojiMap) {
-      if (keywords.some(w => condition.includes(w))) { emoji = icon; break; }
-    }
-    weatherTextEl.textContent = `Temp: ${tempF}°F, Wind: ${wind} mph, ${conditionText} ${emoji}`;
+    weatherTextEl.textContent = `Temp: ${tempF.toFixed(1)}°F, Wind: ${windMph.toFixed(1)} mph, ${condition.text} ${condition.icon}`;
   } catch {
     cityStateEl.textContent = 'Weather data unavailable';
-    weatherTextEl.textContent = 'Check API connection';
+    weatherTextEl.textContent = 'Check network connection';
   }
 }
 
 async function fetchWeather() {
   if (!navigator.geolocation) {
-    applyWeatherToDOM('Vero Beach, FL', true);
+    // Default fallback coordinates for Vero Beach, FL
+    applyWeatherToDOM(27.6386, -80.3973, 'Vero Beach, FL');
     return;
   }
 
@@ -374,11 +372,13 @@ async function fetchWeather() {
     (pos) => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
-      applyWeatherToDOM(`${lat},${lon}`);
+      // Reverse geocode rough region name or display coordinates cleanly
+      applyWeatherToDOM(lat, lon, `Lat: ${lat.toFixed(1)}, Lon: ${lon.toFixed(1)}`);
       fitToViewport();
     }, 
     () => {
-      applyWeatherToDOM('Vero Beach, FL', true);
+      // Fallback to Vero Beach, FL if location permission is denied
+      applyWeatherToDOM(27.6386, -80.3973, 'Vero Beach, FL');
       fitToViewport();
     }
   );
