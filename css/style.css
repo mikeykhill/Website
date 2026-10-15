@@ -40,8 +40,8 @@ html, body {
   margin: 0; 
   padding: 0;
   height: 100%;
-  min-height: 100dvh; /* dvh ensures it doesn't hide behind mobile browser bars */
-  overflow-x: hidden; /* Prevents horizontal scrolling */
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 body {
@@ -49,7 +49,6 @@ body {
   color: var(--text-dark);
   font-family: 'Inter', sans-serif;
   position: relative;
-  /* Adds a subtle shadow behind all text to make it readable over the glowing particles */
   text-shadow: 0 0 5px rgba(0,0,0,0.7); 
 }
 
@@ -63,7 +62,9 @@ body {
   justify-content: center;
   overflow: hidden;
   position: relative;
-  z-index: 1; /* Keeps UI above the Three.js canvas */
+  z-index: 10;
+  /* Allows dragging/clicking the 3D harbor through empty screen space around the center UI */
+  pointer-events: none;
 }
 
 /* Main content container */
@@ -76,7 +77,16 @@ body {
   flex-direction: column;
   align-items: center;
   transform-origin: top center;
-  transform: scale(var(--fit-scale)); /* Dynamically scaled by main.js */
+  transform: scale(var(--fit-scale));
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Faded state triggered after 20s of mouse inactivity or when Auto Camera is enabled */
+#app.ui-faded {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* =========================================================
@@ -87,7 +97,7 @@ h1 {
   font-size: 2.5rem;
   margin: 6px 0 5px;
   text-align: center;
-  user-select: none; /* Prevents accidental highlighting */
+  user-select: none;
 }
 
 p#greeting {
@@ -97,7 +107,7 @@ p#greeting {
   text-align: center;
   color: #66ccff;
   user-select: none;
-  text-shadow: 0 0 6px #3399ff; /* Creates a glowing text effect */
+  text-shadow: 0 0 6px #3399ff;
 }
 
 p#welcome {
@@ -114,12 +124,12 @@ p#welcome {
    ========================================================= */
 .button-container {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr)); /* Two equal columns */
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
   gap: 22px;
   width: 100%;
   max-width: 680px;
   margin-bottom: 28px;
-  perspective: 1000px; /* Required for the 3D tilt hover effect to work */
+  perspective: 1000px;
 }
 
 .service-group { 
@@ -128,14 +138,12 @@ p#welcome {
   align-items: center; 
 }
 
-/* Forces the 3rd odd button (File Converter) to center itself across both columns */
 .service-group:last-child {
   grid-column: 1 / -1; 
   width: calc(50% - 11px); 
   margin: 0 auto; 
 }
 
-/* Performance optimization: tells browser to expect transform changes */
 .service-button,
 .service-button .icon { 
   will-change: transform; 
@@ -151,12 +159,11 @@ p#welcome {
   --bob: 0px;
 
   position: relative; 
-  isolation: isolate; /* Creates a new stacking context for children */
+  isolation: isolate;
   border: 1px solid var(--button-border-dark);
   background: var(--button-bg-dark);
   color: inherit;
   
-  /* Creates the frosted glass effect */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px); 
   
@@ -172,16 +179,14 @@ p#welcome {
   width: 100%;
   cursor: pointer;
 
-  /* Applies the 3D tilt (driven by JS) and the entrance/bobbing animations */
   transform: translate3d(0, calc(var(--intro-ty) + var(--bob)), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
 
   box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
   transition: transform 220ms ease, box-shadow 220ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease, filter 200ms ease;
   overflow: hidden;
-  opacity: 0; /* Hidden by default until entrance animation plays */
+  opacity: 0;
 }
 
-/* Glare effect overlay that swipes across on hover */
 .service-button::after {
   content: ""; 
   position: absolute; 
@@ -202,23 +207,20 @@ p#welcome {
     0 0 0 1px rgba(153,221,255,0.25) inset,
     0 0 24px rgba(102,204,255,0.2);
   color: #cfeeff;
-  filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25)); /* Makes the whole button cast a cyan glow */
+  filter: drop-shadow(0 0 10px rgba(103, 211, 255, 0.25));
   animation: hoverBob 1.8s ease-in-out infinite;
 }
 
-/* Triggers the glare swipe */
 .service-button:hover::after { 
   transform: translateX(120%); 
 }
 
-/* Focus state for keyboard accessibility */
 .service-button:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 3px;
   box-shadow: 0 0 0 4px rgba(102, 204, 255, 0.25);
 }
 
-/* Material Design click ripple (spawns via JS) */
 .service-button .ripple {
   position: absolute; 
   border-radius: 50%; 
@@ -230,7 +232,6 @@ p#welcome {
   mix-blend-mode: screen;
 }
 
-/* SVG Icon styling */
 .icon { 
   width: 36px; 
   height: 36px; 
@@ -243,7 +244,6 @@ p#welcome {
   transform: translateY(-1px) scale(1.04) rotate(-0.5deg); 
 }
 
-/* App Store / Play Store mini buttons */
 .sub-buttons { 
   display: flex; 
   justify-content: center; 
@@ -302,7 +302,7 @@ p#welcome {
 }
 
 /* =========================================================
-   FLOATING CORNER BUTTONS
+   FLOATING CORNER BUTTONS (TOP-LEFT & TOP-RIGHT)
    ========================================================= */
 #it-btn {
   position: fixed; 
@@ -327,13 +327,44 @@ p#welcome {
   color: #99ffcc;
 }
 
+#bg-toggle-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  border: 2px solid rgba(56, 189, 248, 0.45);
+  background-color: rgba(15, 23, 42, 0.9);
+  color: #38bdf8;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 30;
+}
+
+#bg-toggle-btn:hover {
+  background-color: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.85);
+  color: #bae6fd;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+}
+
+#bg-toggle-btn.harbor-active {
+  border-color: rgba(45, 212, 191, 0.65);
+  color: #5eead4;
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.3);
+}
+
 /* =========================================================
    MOBILE RESPONSIVENESS
    ========================================================= */
 @media (max-width: 560px) {
   #app { padding: 18px 14px 24px; }
 
-  /* Fluid typography for headers */
   h1 { font-size: clamp(1.35rem, 6vw, 1.8rem); margin: 4px 0; }
   p#greeting { font-size: 1.05rem; margin: 2px 0 4px; }
   p#welcome { font-size: 1rem; margin: 0 0 16px; }
@@ -343,13 +374,12 @@ p#welcome {
   #location  { font-size: 0.95rem; }
 
   .button-container {
-    grid-template-columns: 1fr; /* Switches grid to a single column */
+    grid-template-columns: 1fr;
     gap: 12px;
     max-width: 520px;
     margin-bottom: 14px;
   }
   
-  /* Restores the File Converter button to full width on mobile */
   .service-group:last-child {
     width: 100%;
   }
@@ -366,7 +396,7 @@ p#welcome {
 }
 
 /* =========================================================
-   BACKGROUND CANVAS (Three.js Container)
+   BACKGROUND CANVASES (Particle Ocean & Harbor Iframe)
    ========================================================= */
 #bg-animation-3 {
   position: fixed; 
@@ -374,9 +404,10 @@ p#welcome {
   left: 0; 
   width: 100vw; 
   height: 100dvh;
-  z-index: 0; /* Ensures it sits behind the UI */
-  pointer-events: none; /* Prevents canvas from blocking button clicks */
+  z-index: 0;
+  pointer-events: none;
   overflow: hidden;
+  transition: opacity 0.5s ease;
 }
 
 #bg-animation-3 canvas {
@@ -386,6 +417,25 @@ p#welcome {
   width: 100%; height: 100%;
 }
 
+#bg-harbor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  border: none;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  background-color: #050a14;
+}
+
+#bg-harbor.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* =========================================================
    KEYFRAME ANIMATIONS
    ========================================================= */
@@ -393,30 +443,25 @@ p#welcome {
   to { transform: scale(8); opacity: 0; } 
 }
 
-/* The gentle floating effect when hovering a button */
 @keyframes hoverBob {
   0%   { --bob: -2px; }
   50%  { --bob: -8px; }
   100% { --bob: -2px; }
 }
 
-/* The slide-up entrance animation on load */
 @keyframes btnIntro {
   from { --intro-ty: 100vh; opacity: 0; }
   to   { --intro-ty: 0px;   opacity: 1; }
 }
 
-/* Staggers the entrance of each button */
 .button-container.intro .service-group:nth-child(1) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0ms; }
 .button-container.intro .service-group:nth-child(2) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 250ms; }
 .button-container.intro .service-group:nth-child(3) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 500ms; }
-/* Included a 4th nth-child delay just in case you add another tool later */
 .button-container.intro .service-group:nth-child(4) .service-button { animation: btnIntro 600ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 750ms; }
 
 /* =========================================================
    ACCESSIBILITY
    ========================================================= */
-/* Disables all animations for users with vestibular motion sensitivity */
 @media (prefers-reduced-motion: reduce) {
   .service-button, 
   .service-button::before, 
