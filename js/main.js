@@ -3,6 +3,7 @@
    ======================================================= */
 // WeatherAPI Key (Free tier)
 const WEATHER_API_KEY = '84acb4b38fbe409b9b3131518250108';
+const IDLE_FADE_MS    = 20000; // 20 seconds of mouse inactivity before middle UI fades on Harbor BG
 
 /* =======================================================
    DOM ELEMENTS (Hooks to your HTML)
@@ -13,23 +14,153 @@ const locationEl      = document.getElementById('location');
 const clockEl         = document.getElementById('clock');
 const weatherTextEl   = document.getElementById('weather-text');
 const bgContainer     = document.getElementById('bg-animation-3');
+const harborFrame     = document.getElementById('bg-harbor');
 const app             = document.getElementById('app');
 const fitWrapper      = document.getElementById('fit-wrapper');
 const buttonContainer = document.querySelector('.button-container');
 const itBtn           = document.getElementById('it-btn');
+const bgToggleBtn     = document.getElementById('bg-toggle-btn');
+
+/* =======================================================
+   BACKGROUND STATE & IDLE / AUTO-CAMERA FADE LOGIC
+   ======================================================= */
+let isHarborActive  = false;
+let isHarborLoaded  = false;
+let isAutoCamLocked = false;
+let idleTimer       = null;
+
+function fadeOutMainUI() {
+  if (!isHarborActive) return;
+  app?.classList.add('ui-faded');
+}
+
+function fadeInMainUI() {
+  app?.classList.remove('ui-faded');
+}
+
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  // Only run the 20s inactivity timer when on the Harbor background and Auto Camera is OFF
+  if (!isHarborActive || isAutoCamLocked) return;
+
+  fadeInMainUI();
+  idleTimer = setTimeout(() => {
+    if (isHarborActive && !isAutoCamLocked) {
+      fadeOutMainUI();
+    }
+  }, IDLE_FADE_MS);
+}
+
+// Listen for mouse movement on the main document to bring UI back and reset the 20s timer
+['mousemove', 'pointermove', 'keydown', 'touchstart'].forEach(evtName => {
+  window.addEventListener(evtName, () => {
+    if (isHarborActive && !isAutoCamLocked) {
+      resetIdleTimer();
+    }
+  }, { passive: true });
+});
+
+// Hook into harbor.html iframe once loaded
+function attachHarborHooks() {
+  if (!harborFrame) return;
+  try {
+    const hWin = harborFrame.contentWindow;
+    const hDoc = harborFrame.contentDocument || hWin?.document;
+    if (!hDoc) return;
+
+    // 1. Make Night Mode the default on startup
+    const dayNightBtn   = hDoc.getElementById('day-night-btn');
+    const dayNightIcon  = hDoc.getElementById('day-night-icon');
+    const dayNightLabel = hDoc.getElementById('day-night-label');
+
+    if (dayNightBtn && !dayNightBtn.classList.contains('is-night')) {
+      dayNightBtn.click(); // Toggles NightEnvironment.isNight = true and updates button UI
+    }
+    // Also set nightMix = 1.0 immediately so there is no daytime transition flash
+    if (hWin && hWin.NightEnvironment) {
+      hWin.NightEnvironment.isNight  = true;
+      hWin.NightEnvironment.nightMix = 1.0;
+      if (dayNightBtn)   dayNightBtn.classList.add('is-night');
+      if (dayNightIcon)  dayNightIcon.innerText  = '☀️';
+      if (dayNightLabel) dayNightLabel.innerText = 'Day Mode';
+    }
+
+    // 2. Forward mouse movement inside the harbor iframe to our 20-second inactivity timer
+    ['mousemove', 'pointermove', 'touchstart'].forEach(evtName => {
+      hDoc.addEventListener(evtName, () => {
+        if (isHarborActive && !isAutoCamLocked) {
+          resetIdleTimer();
+        }
+      }, { passive: true });
+    });
+
+    // 3. Hook the Auto Camera button at the bottom of harbor.html
+    const autoCamBtn = hDoc.getElementById('auto-cam-btn');
+    if (autoCamBtn && !autoCamBtn.dataset.fadeHooked) {
+      autoCamBtn.dataset.fadeHooked = 'true';
+      autoCamBtn.addEventListener('click', () => {
+        // Check if Auto Camera was just activated
+        setTimeout(() => {
+          isAutoCamLocked = autoCamBtn.classList.contains('is-active-cam');
+          clearTimeout(idleTimer);
+          if (isAutoCamLocked) {
+            fadeOutMainUI();
+          } else {
+            fadeInMainUI();
+            resetIdleTimer();
+          }
+        }, 0);
+      });
+    }
+  } catch (err) {
+    console.warn('Could not attach direct hooks to harbor.html:', err);
+  }
+}
+
+harborFrame?.addEventListener('load', attachHarborHooks);
 
 /* =======================================================
    TOP CORNER BUTTON ROUTING
    ======================================================= */
-// The '?' ensures the code doesn't crash if the IT button is ever removed from the HTML
 itBtn?.addEventListener('click', () => {
   window.open('https://it.mhservers.com', '_blank', 'noopener,noreferrer');
+});
+
+bgToggleBtn?.addEventListener('click', () => {
+  isHarborActive = !isHarborActive;
+
+  if (isHarborActive) {
+    // Lazy-load harbor.html the first time you switch to it
+    if (!isHarborLoaded && harborFrame) {
+      harborFrame.src = 'harbor.html';
+      isHarborLoaded = true;
+    }
+    harborFrame?.classList.add('active');
+    if (bgContainer) bgContainer.style.opacity = '0';
+
+    bgToggleBtn.textContent = '🌊 Particle BG';
+    bgToggleBtn.classList.add('harbor-active');
+
+    if (isAutoCamLocked) {
+      fadeOutMainUI();
+    } else {
+      resetIdleTimer();
+    }
+  } else {
+    harborFrame?.classList.remove('active');
+    if (bgContainer) bgContainer.style.opacity = '1';
+
+    bgToggleBtn.textContent = '⚓ Harbor BG';
+    bgToggleBtn.classList.remove('harbor-active');
+
+    clearTimeout(idleTimer);
+    fadeInMainUI();
+  }
 });
 
 /* =======================================================
    BACKGROUND: 3D PARTICLE OCEAN (THREE.JS)
    ======================================================= */
-// This runs immediately as an IIFE (Immediately Invoked Function Expression)
 (function initParticleOceanAsync() {
   if (!bgContainer) return;
 
@@ -38,14 +169,13 @@ itBtn?.addEventListener('click', () => {
 
     let renderer;
     try {
-      // Initialize WebGL with transparency enabled to blend with the CSS background
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     } catch {
-      return; // Silently fail if the browser doesn't support WebGL
+      return;
     }
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x020202, 0.00045); // Creates depth by fading distant particles into the background color
+    scene.fog = new THREE.FogExp2(0x020202, 0.00045);
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.z = 1200;
@@ -54,12 +184,11 @@ itBtn?.addEventListener('click', () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x020202, 1);
-    renderer.domElement.setAttribute('aria-hidden', 'true'); // Hides the canvas from screen readers
+    renderer.domElement.setAttribute('aria-hidden', 'true');
 
     bgContainer.innerHTML = '';
     bgContainer.appendChild(renderer.domElement);
 
-    // Responsive particle count: heavily reduced on mobile devices to save battery and performance
     const isMobileBg = window.matchMedia('(max-width: 560px)').matches;
     const amountX  = isMobileBg ? 140 : 250;
     const amountZ  = isMobileBg ? 420 : 1200;
@@ -73,17 +202,15 @@ itBtn?.addEventListener('click', () => {
     const positions = new Float32Array(numParticles * 3);
     let ptr = 0;
     
-    // Generate the grid of particles
     for (let ix = 0; ix < amountX; ix++) {
       for (let iz = 0; iz < amountZ; iz++) {
         positions[ptr++] = ix * separation - offsetX;
-        positions[ptr++] = 0; // Y position is set dynamically during render
+        positions[ptr++] = 0;
         positions[ptr++] = iz * separation - offsetZ;
       }
     }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-    // Creates a soft, circular texture for the particles using a hidden 2D canvas
     function getCircleTexture() {
       const c = document.createElement('canvas');
       c.width = 32; c.height = 32;
@@ -98,13 +225,13 @@ itBtn?.addEventListener('click', () => {
     }
 
     const material = new THREE.PointsMaterial({
-      color: 0x00aaff, // Cyan accent color
+      color: 0x00aaff,
       size: isMobileBg ? 5 : 6,
       map: getCircleTexture(),
       transparent: true,
       opacity: 0.7,
       depthWrite: false,
-      blending: THREE.AdditiveBlending // Makes overlapping particles glow brighter
+      blending: THREE.AdditiveBlending
     });
 
     const particles = new THREE.Points(geometry, material);
@@ -113,12 +240,10 @@ itBtn?.addEventListener('click', () => {
     let mouseX = 0;
     let windowHalfX = window.innerWidth / 2;
 
-    // Shift camera angle slightly based on mouse position (passive:true improves scrolling performance)
     document.addEventListener('mousemove', (event) => {
       mouseX = event.clientX - windowHalfX;
     }, { passive: true });
 
-    // Handle window resizing
     window.addEventListener('resize', () => {
       windowHalfX = window.innerWidth / 2;
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -129,13 +254,14 @@ itBtn?.addEventListener('click', () => {
     let count = 0;
     const prefersReducedMotionBg = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Core animation loop
     function render() {
+      // Skip rendering the particle ocean while the Harbor Logistics background is active
+      if (isHarborActive) return;
+
       const pos = particles.geometry.attributes.position.array;
       let i = 0;
-      count += 0.02; // Speed of the wave
+      count += 0.02;
       
-      // Calculate the sine wave for the ocean effect
       for (let ix = 0; ix < amountX; ix++) {
         for (let iz = 0; iz < amountZ; iz++) {
           pos[i + 1] = (Math.sin((ix + count) * 0.3) * 50) +
@@ -145,7 +271,6 @@ itBtn?.addEventListener('click', () => {
       }
       particles.geometry.attributes.position.needsUpdate = true;
       
-      // Smoothly rotate the entire ocean based on mouse movement
       particles.rotation.y += 0.03 * (mouseX * 0.0003 - particles.rotation.y);
       camera.lookAt(scene.position);
       renderer.render(scene, camera);
@@ -158,7 +283,6 @@ itBtn?.addEventListener('click', () => {
     animate();
   }
 
-  // Inject the Three.js library dynamically so it doesn't block the initial page load
   if (window.THREE) { start(); return; }
   const s = document.createElement('script');
   s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
@@ -171,7 +295,6 @@ itBtn?.addEventListener('click', () => {
 /* =======================================================
    TIME & GREETING LOGIC
    ======================================================= */
-// Formats time as "12:00:00 PM"
 const timeFmt = new Intl.DateTimeFormat([], {
   hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
 });
@@ -187,7 +310,6 @@ function updateClock() {
   clockEl.textContent = timeFmt.format(new Date()); 
 }
 
-// Initialize clock and update every second
 updateGreeting();
 updateClock();
 setInterval(() => { 
@@ -208,7 +330,6 @@ const emojiMap = [
   { keywords: ['fog', 'mist', 'haze'],      icon: '🌫️' },
 ];
 
-// Helper function to process weather data and update the DOM
 async function applyWeatherToDOM(query, isFallback = false) {
   try {
     const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${query}&aqi=no`);
@@ -219,7 +340,6 @@ async function applyWeatherToDOM(query, isFallback = false) {
     const region = data.location.region || data.location.country;
     cityStateEl.textContent = `${city}, ${region}`;
     
-    // Only update the latitude/longitude text if we are using exact GPS coordinates
     if (!isFallback) {
       const lat = data.location.lat;
       const lon = data.location.lon;
@@ -233,7 +353,6 @@ async function applyWeatherToDOM(query, isFallback = false) {
     const conditionText = data.current.condition.text;
     const condition     = conditionText.toLowerCase();
 
-    // Match condition text to the correct emoji
     let emoji = '🌡️';
     for (const { keywords, icon } of emojiMap) {
       if (keywords.some(w => condition.includes(w))) { emoji = icon; break; }
@@ -247,21 +366,18 @@ async function applyWeatherToDOM(query, isFallback = false) {
 
 async function fetchWeather() {
   if (!navigator.geolocation) {
-    applyWeatherToDOM('Vero Beach, FL', true); // Fallback if browser doesn't support geolocator
+    applyWeatherToDOM('Vero Beach, FL', true);
     return;
   }
 
-  // Request user location
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      // Success: Fetch weather based on exact coordinates
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
       applyWeatherToDOM(`${lat},${lon}`);
-      fitToViewport(); // Recalculate scaling once text populates
+      fitToViewport();
     }, 
     () => {
-      // Denied/Error: Fall back to default location instead of breaking the widget
       applyWeatherToDOM('Vero Beach, FL', true);
       fitToViewport();
     }
@@ -279,14 +395,12 @@ const buttonLinks = {
   'converter-btn': 'https://convertx.mhservers.com',
 };
 
-// Loop through each button ID and attach click/keyboard events
 Object.entries(buttonLinks).forEach(([id, url]) => {
   const btn = document.getElementById(id);
   
-  if (btn) { // Safety check ensures script doesn't crash if a button is removed
+  if (btn) {
     btn.addEventListener('click', () => window.open(url, '_blank', 'noopener,noreferrer'));
     
-    // Accessibility: Allow activating buttons with Enter or Spacebar
     btn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -302,24 +416,20 @@ Object.entries(buttonLinks).forEach(([id, url]) => {
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const hasFineHover   = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-// Only apply complex hover effects if the user is on a desktop mouse (pointer: fine)
 if (hasFineHover && !prefersReduced) {
   document.querySelectorAll('.service-button').forEach(card => {
     let lastX = 0, lastY = 0, rect = null, ticking = false;
 
-    // Track when mouse enters the button
     card.addEventListener('pointerenter', () => { 
       rect = card.getBoundingClientRect(); 
     });
     
-    // Reset button tilt when mouse leaves
     card.addEventListener('pointerleave', () => {
       rect = null;
       card.style.setProperty('--tilt-x', '0deg');
       card.style.setProperty('--tilt-y', '0deg');
     });
     
-    // Calculate 3D tilt based on mouse position inside the button
     card.addEventListener('pointermove', (e) => {
       if (!rect) return;
       lastX = e.clientX - rect.left; 
@@ -329,7 +439,7 @@ if (hasFineHover && !prefersReduced) {
       
       requestAnimationFrame(() => {
         const midX    = rect.width / 2, midY = rect.height / 2;
-        const rotateY = ((lastX - midX) / midX) * 6; // Max rotation 6deg
+        const rotateY = ((lastX - midX) / midX) * 6;
         const rotateX = -((lastY - midY) / midY) * 6;
         card.style.setProperty('--tilt-x', rotateX.toFixed(2) + 'deg');
         card.style.setProperty('--tilt-y', rotateY.toFixed(2) + 'deg');
@@ -337,16 +447,13 @@ if (hasFineHover && !prefersReduced) {
       });
     });
 
-    // Material design ripple effect on click
     card.addEventListener('click', (e) => {
       const r      = card.getBoundingClientRect();
       const ripple = document.createElement('span');
       ripple.className = 'ripple';
       const size = Math.max(r.width, r.height) * 0.5;
-      // Position ripple exactly where the click occurred
       ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - r.left - size / 2}px;top:${e.clientY - r.top - size / 2}px`;
       card.appendChild(ripple);
-      // Clean up the DOM element after the animation finishes
       ripple.addEventListener('animationend', () => ripple.remove());
     });
   });
@@ -356,17 +463,14 @@ if (hasFineHover && !prefersReduced) {
    ON-LOAD INTRO ANIMATION
    ======================================================= */
 if (!prefersReduced && buttonContainer) {
-  // Triggers the cascading slide-up animation in CSS
   requestAnimationFrame(() => buttonContainer.classList.add('intro'));
 } else if (buttonContainer) {
-  // If user prefers reduced motion, skip animation and show instantly
   document.querySelectorAll('.service-button').forEach(b => b.style.opacity = '1');
 }
 
 /* =======================================================
    MOBILE: FIT TO VIEWPORT SCALING
    ======================================================= */
-// Prevents mobile browsers from hiding content behind the address bar/notch
 const isSmallScreen = () => window.matchMedia('(max-width: 560px)').matches;
 
 function fitToViewport() {
@@ -376,7 +480,6 @@ function fitToViewport() {
     return;
   }
   
-  // Lock scrolling on mobile and shrink the UI to fit perfectly within available height
   document.body.style.overflowY = 'hidden';
   app.style.transform = 'scale(1)';
   const available = window.innerHeight;
@@ -387,7 +490,6 @@ function fitToViewport() {
   fitWrapper.style.height = available + 'px';
 }
 
-// Re-calculate scaling when window changes (e.g., rotating phone)
 window.addEventListener('load', fitToViewport);
 setTimeout(fitToViewport, 300);
 window.addEventListener('resize', fitToViewport);
